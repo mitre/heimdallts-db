@@ -3,6 +3,9 @@ import * as bodyParser from 'body-parser';
 import * as errorhandler from 'strong-error-handler';
 import {movies} from './routes/movies';
 import {actors} from './routes/actors';
+import {evaluations} from './routes/evaluations';
+import {profiles} from './routes/profiles';
+import {statistics} from './routes/statistics';
 
 export const app = express();
 
@@ -24,6 +27,9 @@ app.use((req, res, next) => {
 
 app.use('/movies', movies);
 app.use('/actors', actors);
+app.use('/evaluations', evaluations);
+app.use('/profiles', profiles);
+app.use('/statistics', statistics);
 
 app.use(errorhandler({
   debug: process.env.ENV !== 'prod',
