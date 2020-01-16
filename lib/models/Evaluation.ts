@@ -1,8 +1,11 @@
-import {Model, Column, Table, HasOne, BelongsToMany, DefaultScope, Scopes, CreatedAt, UpdatedAt} from "sequelize-typescript";
+import {Model, Column, Table, HasOne, HasMany, BelongsToMany, DefaultScope, Scopes, CreatedAt, UpdatedAt} from "sequelize-typescript";
 import {Profile} from "./Profile";
 import {EvaluationProfile} from "./EvaluationProfile";
 import {Statistic} from "./Statistic";
 import {Platform} from "./Platform";
+import {Input} from "./Input";
+import {Tag} from "./Tag";
+import {Finding} from "./Finding";
 
 @DefaultScope(() => ({
   attributes: ['id', 'version', 'createdAt', 'updatedAt']
@@ -39,6 +42,16 @@ import {Platform} from "./Platform";
       model: Platform,
       as: 'platform',
       required: false,
+    },
+    {
+      model: Finding,
+      as: 'finding',
+      required: false,
+    },
+    {
+      model: Tag,
+      as: 'tags',
+      required: false,
     }]
   }
 }))
@@ -53,6 +66,15 @@ export class Evaluation extends Model<Evaluation> {
 
   @HasOne(() => Platform, 'evaluation_id')
   platform?: Platform | null = null;
+
+  @HasMany(() => Input, 'evaluation_id')
+  inputs?: Input[];
+
+  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
+  tags!: Tag[];
+
+  @HasOne(() => Finding, 'evaluation_id')
+  finding?: Finding | null = null;
 
   @BelongsToMany(() => Profile, () => EvaluationProfile)
   profiles?: Profile[];

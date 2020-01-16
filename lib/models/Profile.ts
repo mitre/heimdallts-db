@@ -1,6 +1,7 @@
-import {BelongsToMany, Column, CreatedAt, Model, Scopes, Table, UpdatedAt} from 'sequelize-typescript';
+import {BelongsToMany, HasMany, Column, CreatedAt, Model, Scopes, Table, UpdatedAt} from 'sequelize-typescript';
 import {EvaluationProfile} from './EvaluationProfile';
 import {Evaluation} from './Evaluation';
+import {Input} from './Input';
 
 @Scopes(() => ({
   evaluations: {
@@ -11,6 +12,15 @@ import {Evaluation} from './Evaluation';
       },
     ],
   },
+  full: {
+    include: [
+      {
+        model: Input,
+        as: 'inputs',
+        required: false,
+      }
+    ],
+  }
 }))
 @Table
 export class Profile extends Model<Profile> {
@@ -44,6 +54,9 @@ export class Profile extends Model<Profile> {
 
   @Column
   sha256!: string;
+
+  @HasMany(() => Input, 'profile_id')
+  inputs?: Input[];
 
   @BelongsToMany(() => Evaluation, () => EvaluationProfile)
   evaluations?: Evaluation[];
