@@ -2,6 +2,10 @@ import {BelongsToMany, HasMany, Column, CreatedAt, Model, Scopes, Table, Updated
 import {EvaluationProfile} from './EvaluationProfile';
 import {Evaluation} from './Evaluation';
 import {Input} from './Input';
+import {Group} from './Group';
+import {Depend} from './Depend';
+import {Support} from './Support';
+import {Control} from './Control';
 
 @Scopes(() => ({
   evaluations: {
@@ -12,11 +16,35 @@ import {Input} from './Input';
       },
     ],
   },
+  controls: {
+    include: [
+      {
+        model: Control,
+        as: 'controls',
+        required: false,
+      },
+    ],
+  },
   full: {
     include: [
       {
         model: Input,
         as: 'inputs',
+        required: false,
+      },
+      {
+        model: Group,
+        as: 'groups',
+        required: false,
+      },
+      {
+        model: Depend,
+        as: 'depends',
+        required: false,
+      },
+      {
+        model: Support,
+        as: 'supports',
         required: false,
       }
     ],
@@ -57,6 +85,18 @@ export class Profile extends Model<Profile> {
 
   @HasMany(() => Input, 'profile_id')
   inputs?: Input[];
+
+  @HasMany(() => Group, {foreignKey: "profile_id", onDelete: "CASCADE"})
+  groups?: Group[];
+
+  @HasMany(() => Depend, 'profile_id')
+  depends?: Depend[];
+
+  @HasMany(() => Support, 'profile_id')
+  supports?: Support[];
+
+  @HasMany(() => Control, 'profile_id')
+  controls?: Control[];
 
   @BelongsToMany(() => Evaluation, () => EvaluationProfile)
   evaluations?: Evaluation[];

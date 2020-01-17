@@ -6,6 +6,7 @@ import {actors} from './routes/actors';
 import {evaluations} from './routes/evaluations';
 import {profiles} from './routes/profiles';
 import {statistics} from './routes/statistics';
+import {controls} from './routes/controls';
 
 export const app = express();
 
@@ -30,6 +31,7 @@ app.use('/actors', actors);
 app.use('/evaluations', evaluations);
 app.use('/profiles', profiles);
 app.use('/statistics', statistics);
+app.use('/controls', controls);
 
 app.use(errorhandler({
   debug: process.env.ENV !== 'prod',

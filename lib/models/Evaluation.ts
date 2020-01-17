@@ -6,6 +6,8 @@ import {Platform} from "./Platform";
 import {Input} from "./Input";
 import {Tag} from "./Tag";
 import {Finding} from "./Finding";
+import {WaiverDatum} from './WaiverDatum';
+import {Result} from "./Result";
 
 @DefaultScope(() => ({
   attributes: ['id', 'version', 'createdAt', 'updatedAt']
@@ -72,6 +74,12 @@ export class Evaluation extends Model<Evaluation> {
 
   @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
   tags!: Tag[];
+
+  @HasMany(() => WaiverDatum, 'evaluation_id')
+  waiver_data!: WaiverDatum[];
+
+  @HasMany(() => Result, 'evaluation_id')
+  results!: Result[];
 
   @HasOne(() => Finding, 'evaluation_id')
   finding?: Finding | null = null;
