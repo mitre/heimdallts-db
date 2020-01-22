@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  // "outDir": "dist",
+  "exclude": [
+    "index.ts", 
+  ]
+}
