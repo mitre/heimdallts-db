@@ -3,31 +3,31 @@ import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, All
 import { User } from './User';
 
 @DefaultScope(() => ({
-  attributes: ['id', 'user_id', 'username', 'encryptedPassword', 'active', 'createdAt', 'updatedAt'],
-  // include: [User],
   where: {
-    active: true // Don't typically wan't inactive logins
+    expired: false // Don't typically wan't inactive logins
   }
 }))
+@Table
 @Table({
-  tableName: "auths_user_pass"
+  tableName: 'evaluations',
 })
 export class AuthUserPass extends Model<AuthUserPass> {
-  // @AllowNull(false)
-  @BelongsTo(() => User, 'user_id')
-  user!: User;
 
-  @Column
-  userId!: number;
-
+  /** The username */
   @Column
   username!: string;
 
+  /** The password, salted and hashed */
   @Column
   encryptedPassword!: string;
 
+  /** Whether this user/pass has been expired, and needs to be re-assigned. */
   @Column 
-  active!: boolean;
+  expired!: boolean;
+
+  // @AllowNull(false)
+  @BelongsTo(() => User, 'user_id')
+  user?: User;
 
   @CreatedAt
   @Column

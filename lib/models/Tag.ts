@@ -1,9 +1,8 @@
 import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'tagger_id', 'tagger_type', 'content', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'tags'
+})
 export class Tag extends Model<Tag> {
 
   @Column

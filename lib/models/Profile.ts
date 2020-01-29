@@ -50,7 +50,9 @@ import {Control} from './Control';
     ],
   }
 }))
-@Table
+@Table({
+  tableName: 'profiles',
+})
 export class Profile extends Model<Profile> {
 
   @Column
@@ -78,7 +80,7 @@ export class Profile extends Model<Profile> {
   version!: string;
 
   @Column
-  status!: string;;
+  status!: string;
 
   @Column
   sha256!: string;
@@ -86,7 +88,7 @@ export class Profile extends Model<Profile> {
   @HasMany(() => Input, 'profile_id')
   inputs?: Input[];
 
-  @HasMany(() => Group, {foreignKey: "profile_id", onDelete: "CASCADE"})
+  @HasMany(() => Group, {foreignKey: 'profile_id', onDelete: 'CASCADE'})
   groups?: Group[];
 
   @HasMany(() => Depend, 'profile_id')

@@ -1,10 +1,9 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
 import {Evaluation} from './Evaluation';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'passed', 'failed', 'not_reviewed', 'not_applicable', 'profile_error', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'findings',
+})
 export class Finding extends Model<Finding> {
 
   @Column

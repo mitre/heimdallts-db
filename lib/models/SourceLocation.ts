@@ -1,10 +1,9 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
 import {Control} from './Control';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'ref', 'line', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'source_locations'
+})
 export class SourceLocation extends Model<SourceLocation> {
 
   @Column

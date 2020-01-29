@@ -7,9 +7,6 @@ import {SourceLocation} from './SourceLocation';
 import {WaiverDatum} from './WaiverDatum';
 import {Result} from './Result';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'title', 'desc', 'impact', 'code', 'control_id', 'createdAt', 'updatedAt']
-}))
 @Scopes(() => ({
   full: {
     include: [{
@@ -36,10 +33,12 @@ import {Result} from './Result';
       model: Result,
       as: 'results',
       required: false,
-    },]
+    }]
   }
 }))
-@Table
+@Table({
+  tableName: 'controls',
+})
 export class Control extends Model<Control> {
 
   @Column
@@ -57,7 +56,7 @@ export class Control extends Model<Control> {
   @Column
   control_id!: string;
 
-  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
+  @HasMany(() => Tag, {foreignKey: 'tagger_id', scope: {tagger_type: 'Evaluation'} })
   tags!: Tag[];
 
   @HasMany(() => Ref, 'control_id')

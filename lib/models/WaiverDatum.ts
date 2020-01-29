@@ -2,14 +2,8 @@ import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} fro
 import {Control} from './Control';
 import {Evaluation} from './Evaluation';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'justification', 'run', 'skipped_due_to_waiver', 'message', 'createdAt', 'updatedAt']
-}))
 @Table({
-  timestamps: true,
-  underscored: true,
-  paranoid: false,
-  tableName: 'waiver_data',
+  tableName: 'waiver_data'
 })
 export class WaiverDatum extends Model<WaiverDatum> {
 

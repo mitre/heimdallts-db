@@ -1,6 +1,6 @@
-import {Model, Column, Table, ForeignKey} from "sequelize-typescript";
-import {Evaluation} from "./Evaluation";
-import {Profile} from "./Profile";
+import {Model, Column, Table, ForeignKey} from 'sequelize-typescript';
+import {Evaluation} from './Evaluation';
+import {Profile} from './Profile';
 
 @Table({
   timestamps: false,

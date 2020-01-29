@@ -1,10 +1,9 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
 import {Profile} from './Profile';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'profile_id', 'title', 'control_id', 'controls', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'groups',
+})
 export class Group extends Model<Group> {
 
   @Column

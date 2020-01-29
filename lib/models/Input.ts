@@ -2,10 +2,9 @@ import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, Dat
 import {Evaluation} from './Evaluation';
 import {Profile} from './Profile';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'evaluation_id', 'profile_id', 'name', 'options', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'inputs',
+})
 export class Input extends Model<Input> {
 
   @Column

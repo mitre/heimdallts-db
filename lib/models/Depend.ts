@@ -1,9 +1,9 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
 import {Profile} from './Profile';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'profile_id', 'name', 'path', 'url', 'status', 'git', 'branch', 'createdAt', 'updatedAt']
-}))
+@Table({
+  tableName: 'depends',
+})
 @Table
 export class Depend extends Model<Depend> {
 

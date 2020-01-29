@@ -7,7 +7,7 @@ evaluations.get('', async (req, res, next) => {
   try {
     res.json(await Evaluation.scope(req.query['scope']).findAll());
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });
@@ -18,7 +18,7 @@ evaluations.get('/:id', async (req, res, next) => {
     console.log(evaluation);
     res.json(evaluation);
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });

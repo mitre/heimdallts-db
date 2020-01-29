@@ -7,7 +7,7 @@ statistics.get('', async (req, res, next) => {
   try {
     res.json(await Statistic.scope(req.query['scope']).findAll());
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });
@@ -18,7 +18,7 @@ statistics.get('/:id', async (req, res, next) => {
     console.log(statistic);
     res.json(statistic);
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });

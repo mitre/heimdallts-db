@@ -1,10 +1,9 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
 import {Control} from './Control';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'ref', 'url', 'uri', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'refs',
+})
 export class Ref extends Model<Ref> {
 
   @Column

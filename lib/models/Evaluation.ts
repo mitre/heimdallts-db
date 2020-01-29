@@ -1,17 +1,14 @@
-import {Model, Column, Table, HasOne, HasMany, BelongsToMany, DefaultScope, Scopes, CreatedAt, UpdatedAt} from "sequelize-typescript";
-import {Profile} from "./Profile";
-import {EvaluationProfile} from "./EvaluationProfile";
-import {Statistic} from "./Statistic";
-import {Platform} from "./Platform";
-import {Input} from "./Input";
-import {Tag} from "./Tag";
-import {Finding} from "./Finding";
+import {Model, Column, Table, HasOne, HasMany, BelongsToMany, DefaultScope, Scopes, CreatedAt, UpdatedAt} from 'sequelize-typescript';
+import {Profile} from './Profile';
+import {EvaluationProfile} from './EvaluationProfile';
+import {Statistic} from './Statistic';
+import {Platform} from './Platform';
+import {Input} from './Input';
+import {Tag} from './Tag';
+import {Finding} from './Finding';
 import {WaiverDatum} from './WaiverDatum';
-import {Result} from "./Result";
+import {Result} from './Result';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'version', 'createdAt', 'updatedAt']
-}))
 @Scopes(() => ({
   profiles: {
     include: [
@@ -21,8 +18,8 @@ import {Result} from "./Result";
       },
     ],
   },
-  statistic: {
-    include: [
+  statistics: {
+    include: [ 
       {
         model: Statistic,
         as: 'statistic',
@@ -57,7 +54,9 @@ import {Result} from "./Result";
     }]
   }
 }))
-@Table
+@Table({
+  tableName: 'evaluations',
+})
 export class Evaluation extends Model<Evaluation> {
 
   @Column
@@ -72,7 +71,7 @@ export class Evaluation extends Model<Evaluation> {
   @HasMany(() => Input, 'evaluation_id')
   inputs?: Input[];
 
-  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
+  @HasMany(() => Tag, {foreignKey: 'tagger_id', scope: {tagger_type: 'Evaluation'} })
   tags!: Tag[];
 
   @HasMany(() => WaiverDatum, 'evaluation_id')

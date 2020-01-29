@@ -2,11 +2,9 @@ import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, DataType, Upda
 import {Control} from './Control';
 import {Evaluation} from './Evaluation';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'evaluation_id', 'status', 'code_desc', 'skip_message', 'resource', 'run_time', 'start_time',
-  'message', 'exception', 'backtrace', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: 'results',
+})
 export class Result extends Model<Result> {
 
   @Column

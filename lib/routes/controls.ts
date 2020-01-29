@@ -7,7 +7,7 @@ controls.get('', async (req, res, next) => {
   try {
     res.json(await Control.scope(req.query['scope']).findAll());
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });
@@ -18,7 +18,7 @@ controls.get('/:id', async (req, res, next) => {
     console.log(control);
     res.json(control);
   } catch (e) {
-    console.log("error " + e);
+    console.log('error ' + e);
     next(e);
   }
 });
