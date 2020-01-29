@@ -1,7 +1,9 @@
 {
-  "extends": "./tsconfig.json",
-  // "outDir": "dist",
+  "extends": "./tsconfig",
   "exclude": [
     "index.ts", 
+    "lib/server.ts",
+    "lib/app.ts",
+    "node_modules"
   ]
 }
