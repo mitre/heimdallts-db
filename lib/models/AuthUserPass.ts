@@ -7,9 +7,8 @@ import { User } from './User';
     expired: false // Don't typically wan't inactive logins
   }
 }))
-@Table
 @Table({
-  tableName: 'evaluations',
+  tableName: 'auths_user_pass',
 })
 export class AuthUserPass extends Model<AuthUserPass> {
 

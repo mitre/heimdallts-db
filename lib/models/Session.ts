@@ -1,3 +1,4 @@
+
 import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsTo } from 'sequelize-typescript';
 import {Op, fn} from 'sequelize';
 import {User} from './User';
@@ -11,32 +12,21 @@ import {Role} from './Role';
   }
 }))
 @Table({
-  tableName: 'api_keys',
+  tableName: 'sessions',
 })
-export class ApiKey extends Model<ApiKey> {
-  @AllowNull(true)
+export class Session extends Model<Session> {
   @Column(DataType.DATE)
-  expiration?: Date | null;
+  expiration!: Date;
 
   @Column
   key!: string;
 
-  /** The user-facing label for this key */
-  @Column
-  name!: string;
-
-  /** The role to which this api-key provides access. If null, provides full user access. */
-  @BelongsTo(() => Role, { 
-    foreignKey: {
-      allowNull: true,
-      name: 'role_id'
-    }
-  })
-  role?: Role | null;
-
-  /** The user which created this key */
   @BelongsTo(() => User, 'user_id')
   user?: User;
+
+  /** The role the session */
+  @BelongsTo(() => Role, 'role_id')
+  role?: Role;
 
   @CreatedAt
   @Column

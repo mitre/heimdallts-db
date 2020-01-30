@@ -3,10 +3,6 @@ import { AuthUserPass } from './AuthUserPass';
 import { UserUsergroup } from './UserUserGroup';
 import { Usergroup } from './Usergroup';
 
-@DefaultScope(() => ({
-  attributes: ['id', 'firstName', 'lastName', 'contactEmail', 'image', 'phoneNumber', 'createdAt', 'updatedAt'],
-  // include: [AuthUserPass],
-}))
 @Table({
   tableName: 'users'
 })

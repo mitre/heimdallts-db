@@ -2,7 +2,7 @@ import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} fro
 import {Control} from './Control';
 
 @Table({
-  tableName: 'evaluations',
+  tableName: 'descriptions',
 })
 export class Description extends Model<Description> {
 

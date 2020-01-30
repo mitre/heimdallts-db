@@ -1,5 +1,4 @@
 import {Column, Scopes, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsToMany} from 'sequelize-typescript';
-import { Group } from './Group';
 import { UsergroupRole } from './UsergroupRole';
 import { Usergroup } from './Usergroup';
 
@@ -17,7 +16,7 @@ export class Role extends Model<Role> {
   name!: string;
 
   /** The usergroups which have access to this role */
-  @BelongsToMany(() => Group, () => UsergroupRole)
+  @BelongsToMany(() => Usergroup, () => UsergroupRole)
   usergroups?: Usergroup[];
 
   @CreatedAt
