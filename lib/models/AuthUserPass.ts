@@ -1,6 +1,7 @@
 
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, AllowNull, DataType} from 'sequelize-typescript';
+import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, AllowNull, DataType, HasMany} from 'sequelize-typescript';
 import { User } from './User';
+import { ResetToken } from './ResetToken';
 
 @DefaultScope(() => ({
   where: {
@@ -18,7 +19,7 @@ export class AuthUserPass extends Model<AuthUserPass> {
 
   /** The password, salted and hashed */
   @Column
-  encryptedPassword!: string;
+  encrypted_password!: string;
 
   /** Whether this user/pass has been expired, and needs to be re-assigned. */
   @Column 
@@ -27,6 +28,9 @@ export class AuthUserPass extends Model<AuthUserPass> {
   // @AllowNull(false)
   @BelongsTo(() => User, 'user_id')
   user?: User;
+
+  @HasMany(() => ResetToken, 'auth_user_pass_id')
+  reset_tokens?: ResetToken[];
 
   @CreatedAt
   @Column

@@ -3,6 +3,7 @@ import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, Allo
 import {Op, fn} from 'sequelize';
 import {User} from './User';
 import {Role} from './Role';
+import { AuthUserPass } from './AuthUserPass';
 
 @DefaultScope(() => ({
   where: {
@@ -20,6 +21,9 @@ export class ResetToken extends Model<ResetToken> {
 
   @Column
   token!: string;
+
+  @BelongsTo(() => AuthUserPass, 'auth_user_pass_id')
+  auth_user_pass?: AuthUserPass;
 
   @CreatedAt
   @Column
