@@ -1,8 +1,9 @@
 
-import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsTo } from 'sequelize-typescript';
+import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsTo, BelongsToMany } from 'sequelize-typescript';
 import {Op, fn} from 'sequelize';
 import {User} from './User';
 import {Role} from './Role';
+import { SessionRole } from './SessionRole';
 
 @DefaultScope(() => ({
   where: {
@@ -25,8 +26,8 @@ export class Session extends Model<Session> {
   user?: User;
 
   /** The role the session */
-  @BelongsTo(() => Role, 'role_id')
-  role?: Role;
+  @BelongsToMany(() => Role, () => SessionRole)
+  roles?: Role[];
 
   @CreatedAt
   @Column

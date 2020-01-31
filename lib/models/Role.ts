@@ -1,6 +1,8 @@
 import {Column, Scopes, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsToMany} from 'sequelize-typescript';
 import { UsergroupRole } from './UsergroupRole';
 import { Usergroup } from './Usergroup';
+import { Session } from './Session';
+import { SessionRole } from './SessionRole';
 
 @Scopes(() => ({
   usergroups: {
@@ -18,6 +20,10 @@ export class Role extends Model<Role> {
   /** The usergroups which have access to this role */
   @BelongsToMany(() => Usergroup, () => UsergroupRole)
   usergroups?: Usergroup[];
+
+  /** The active sessions on this role */
+  @BelongsToMany(() => Session, () => SessionRole)
+  active_sessions?: Session[];
 
   @CreatedAt
   @Column
