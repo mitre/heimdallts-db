@@ -1,11 +1,18 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
-import {Profile} from './Profile';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType
+} from "sequelize-typescript";
+import { Profile } from "./Profile";
 
 @Table({
-  tableName: 'groups',
+  tableName: "groups"
 })
 export class Group extends Model<Group> {
-
   @Column
   title!: string;
 
@@ -15,7 +22,7 @@ export class Group extends Model<Group> {
   @Column(DataType.ARRAY(DataType.STRING))
   controls!: string[];
 
-  @BelongsTo(() => Profile, 'profile_id')
+  @BelongsTo(() => Profile, "profile_id")
   profile?: Profile | null = null;
 
   @CreatedAt
@@ -25,5 +32,4 @@ export class Group extends Model<Group> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

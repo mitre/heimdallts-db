@@ -1,12 +1,18 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt
+} from "sequelize-typescript";
+import { Control } from "./Control";
+import { Evaluation } from "./Evaluation";
 
 @Table({
-  tableName: 'waiver_data'
+  tableName: "waiver_data"
 })
 export class WaiverDatum extends Model<WaiverDatum> {
-
   @Column
   justification!: string;
 
@@ -19,10 +25,10 @@ export class WaiverDatum extends Model<WaiverDatum> {
   @Column
   message!: string;
 
-  @BelongsTo(() => Control, 'control_id')
+  @BelongsTo(() => Control, "control_id")
   control?: Control | null = null;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
+  @BelongsTo(() => Evaluation, "evaluation_id")
   evaluation?: Evaluation | null = null;
 
   @CreatedAt
@@ -32,5 +38,4 @@ export class WaiverDatum extends Model<WaiverDatum> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

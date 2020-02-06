@@ -1,18 +1,24 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt
+} from "sequelize-typescript";
+import { Control } from "./Control";
 
 @Table({
-  tableName: 'descriptions',
+  tableName: "descriptions"
 })
 export class Description extends Model<Description> {
-
   @Column
   label!: string;
 
   @Column
   data!: string;
 
-  @BelongsTo(() => Control, 'control_id')
+  @BelongsTo(() => Control, "control_id")
   control?: Control | null = null;
 
   @CreatedAt
@@ -22,5 +28,4 @@ export class Description extends Model<Description> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

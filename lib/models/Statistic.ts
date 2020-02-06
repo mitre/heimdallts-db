@@ -1,15 +1,21 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt
+} from "sequelize-typescript";
+import { Evaluation } from "./Evaluation";
 
 @Table({
-  tableName: 'statistics',
+  tableName: "statistics"
 })
 export class Statistic extends Model<Statistic> {
-
   @Column
   duration!: string;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
+  @BelongsTo(() => Evaluation, "evaluation_id")
   evaluation?: Evaluation | null = null;
 
   @CreatedAt
@@ -19,5 +25,4 @@ export class Statistic extends Model<Statistic> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

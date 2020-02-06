@@ -1,5 +1,5 @@
 {
-  "name": "heimdall-db-api",
+  "name": "heimdall-db-sequelize",
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
@@ -7,14 +7,15 @@
     "start": "node --require ts-node/register index.ts",
     "build": "rm -r ./dist; mkdir ./dist; tsc -p tsconfig.build.json --strict",
     "start:dev": "nodemon",
-    "lint": "tslint --project . --fix; exit 0"
+    "lint": "eslint -c .eslintrc.js --fix \"lib/**/*.ts\"; exit 0",
+    "prepare": "npm run build"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "dependencies": {
     "@types/bluebird": "^3.5.29",
-    "@types/validator": "^12.0.1",
     "@types/express": "^4.17.2",
+    "@types/validator": "^12.0.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
@@ -24,13 +25,18 @@
     "reflect-metadata": "^0.1.13",
     "sequelize": "^5.21.3",
     "sequelize-typescript": "^1.1.0",
-    "strong-error-handler": "^2.3.2"
+    "strong-error-handler": "^2.3.2",
+    "typescript": "^3.7.5"
   },
   "devDependencies": {
     "@types/node": "^12.12.26",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^1.19.1",
     "nodemon": "2.0.2",
-    "ts-node": "^3.3.0",
-    "tslint": "^5.20.1",
-    "typescript": "^3.7.5"
+    "ts-node": "^3.3.0"
   }
 }

@@ -1,17 +1,27 @@
-import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsToMany} from 'sequelize-typescript';
-import { AuthUserPass } from './AuthUserPass';
-import { UserUsergroup } from './UserUserGroup';
-import { Usergroup } from './Usergroup';
+import {
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType,
+  AllowNull,
+  HasMany,
+  BelongsToMany
+} from "sequelize-typescript";
+import { AuthUserPass } from "./AuthUserPass";
+import { UserUsergroup } from "./UserUserGroup";
+import { Usergroup } from "./Usergroup";
 
 @Table({
-  tableName: 'users'
+  tableName: "users"
 })
 export class User extends Model<User> {
   /** The first name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
   firstName?: string | null;
- 
+
   /** The last name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
@@ -33,10 +43,13 @@ export class User extends Model<User> {
   phoneNumber?: string | null;
 
   /** The login(s) th */
-  @HasMany(() => AuthUserPass, 'user_id')
+  @HasMany(() => AuthUserPass, "user_id")
   authUserPass?: AuthUserPass[];
 
-  @BelongsToMany(() => Usergroup, () => UserUsergroup)
+  @BelongsToMany(
+    () => Usergroup,
+    () => UserUsergroup
+  )
   usergroups?: User[];
 
   @CreatedAt

@@ -1,19 +1,28 @@
-
-import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType, AllowNull, HasMany, BelongsTo, BelongsToMany } from 'sequelize-typescript';
-import {Op, fn} from 'sequelize';
-import {User} from './User';
-import {Role} from './Role';
-import { SessionRole } from './SessionRole';
+import {
+  Column,
+  DefaultScope,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType,
+  BelongsTo,
+  BelongsToMany
+} from "sequelize-typescript";
+import { Op, fn } from "sequelize";
+import { User } from "./User";
+import { Role } from "./Role";
+import { SessionRole } from "./SessionRole";
 
 @DefaultScope(() => ({
   where: {
     expiration: {
-      [Op.gt]: fn('NOW') // Don't want expired data
+      [Op.gt]: fn("NOW") // Don't want expired data
     }
   }
 }))
 @Table({
-  tableName: 'sessions',
+  tableName: "sessions"
 })
 export class Session extends Model<Session> {
   @Column(DataType.DATE)
@@ -22,11 +31,14 @@ export class Session extends Model<Session> {
   @Column
   key!: string;
 
-  @BelongsTo(() => User, 'user_id')
+  @BelongsTo(() => User, "user_id")
   user?: User;
 
   /** The role the session */
-  @BelongsToMany(() => Role, () => SessionRole)
+  @BelongsToMany(
+    () => Role,
+    () => SessionRole
+  )
   roles?: Role[];
 
   @CreatedAt
@@ -36,5 +48,4 @@ export class Session extends Model<Session> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

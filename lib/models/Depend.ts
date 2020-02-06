@@ -1,12 +1,18 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Profile} from './Profile';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt
+} from "sequelize-typescript";
+import { Profile } from "./Profile";
 
 @Table({
-  tableName: 'depends',
+  tableName: "depends"
 })
 @Table
 export class Depend extends Model<Depend> {
-
   @Column
   name!: string;
 
@@ -25,7 +31,7 @@ export class Depend extends Model<Depend> {
   @Column
   branch!: string;
 
-  @BelongsTo(() => Profile, 'profile_id')
+  @BelongsTo(() => Profile, "profile_id")
   profile?: Profile | null = null;
 
   @CreatedAt
@@ -35,5 +41,4 @@ export class Depend extends Model<Depend> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

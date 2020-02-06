@@ -1,10 +1,16 @@
-import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
+import {
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType
+} from "sequelize-typescript";
 
 @Table({
-  tableName: 'tags'
+  tableName: "tags"
 })
 export class Tag extends Model<Tag> {
-
   @Column
   tagger_id!: number;
 
@@ -21,5 +27,4 @@ export class Tag extends Model<Tag> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

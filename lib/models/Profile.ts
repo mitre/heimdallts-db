@@ -1,60 +1,68 @@
-import {BelongsToMany, HasMany, Column, CreatedAt, Model, Scopes, Table, UpdatedAt} from 'sequelize-typescript';
-import {EvaluationProfile} from './EvaluationProfile';
-import {Evaluation} from './Evaluation';
-import {Input} from './Input';
-import {Group} from './Group';
-import {Depend} from './Depend';
-import {Support} from './Support';
-import {Control} from './Control';
+import {
+  BelongsToMany,
+  HasMany,
+  Column,
+  CreatedAt,
+  Model,
+  Scopes,
+  Table,
+  UpdatedAt
+} from "sequelize-typescript";
+import { EvaluationProfile } from "./EvaluationProfile";
+import { Evaluation } from "./Evaluation";
+import { Input } from "./Input";
+import { Group } from "./Group";
+import { Depend } from "./Depend";
+import { Support } from "./Support";
+import { Control } from "./Control";
 
 @Scopes(() => ({
   evaluations: {
     include: [
       {
         model: Evaluation,
-        through: {attributes: []},
-      },
-    ],
+        through: { attributes: [] }
+      }
+    ]
   },
   controls: {
     include: [
       {
         model: Control,
-        as: 'controls',
-        required: false,
-      },
-    ],
+        as: "controls",
+        required: false
+      }
+    ]
   },
   full: {
     include: [
       {
         model: Input,
-        as: 'inputs',
-        required: false,
+        as: "inputs",
+        required: false
       },
       {
         model: Group,
-        as: 'groups',
-        required: false,
+        as: "groups",
+        required: false
       },
       {
         model: Depend,
-        as: 'depends',
-        required: false,
+        as: "depends",
+        required: false
       },
       {
         model: Support,
-        as: 'supports',
-        required: false,
+        as: "supports",
+        required: false
       }
-    ],
+    ]
   }
 }))
 @Table({
-  tableName: 'profiles',
+  tableName: "profiles"
 })
 export class Profile extends Model<Profile> {
-
   @Column
   name!: string;
 
@@ -85,22 +93,25 @@ export class Profile extends Model<Profile> {
   @Column
   sha256!: string;
 
-  @HasMany(() => Input, 'profile_id')
+  @HasMany(() => Input, "profile_id")
   inputs?: Input[];
 
-  @HasMany(() => Group, {foreignKey: 'profile_id', onDelete: 'CASCADE'})
+  @HasMany(() => Group, { foreignKey: "profile_id", onDelete: "CASCADE" })
   groups?: Group[];
 
-  @HasMany(() => Depend, 'profile_id')
+  @HasMany(() => Depend, "profile_id")
   depends?: Depend[];
 
-  @HasMany(() => Support, 'profile_id')
+  @HasMany(() => Support, "profile_id")
   supports?: Support[];
 
-  @HasMany(() => Control, 'profile_id')
+  @HasMany(() => Control, "profile_id")
   controls?: Control[];
 
-  @BelongsToMany(() => Evaluation, () => EvaluationProfile)
+  @BelongsToMany(
+    () => Evaluation,
+    () => EvaluationProfile
+  )
   evaluations?: Evaluation[];
 
   @CreatedAt
@@ -110,5 +121,4 @@ export class Profile extends Model<Profile> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

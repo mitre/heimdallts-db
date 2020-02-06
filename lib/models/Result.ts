@@ -1,12 +1,19 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, DataType, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  DataType,
+  UpdatedAt
+} from "sequelize-typescript";
+import { Control } from "./Control";
+import { Evaluation } from "./Evaluation";
 
 @Table({
-  tableName: 'results',
+  tableName: "results"
 })
 export class Result extends Model<Result> {
-
   @Column
   status!: string;
 
@@ -34,10 +41,10 @@ export class Result extends Model<Result> {
   @Column(DataType.ARRAY(DataType.STRING))
   backtrace: string[] | null = null;
 
-  @BelongsTo(() => Control, 'control_id')
+  @BelongsTo(() => Control, "control_id")
   control?: Control | null = null;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
+  @BelongsTo(() => Evaluation, "evaluation_id")
   evaluation?: Evaluation | null = null;
 
   @CreatedAt
@@ -47,5 +54,4 @@ export class Result extends Model<Result> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }
