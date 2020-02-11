@@ -1,4 +1,10 @@
 {
+  "include": [
+    "lib/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es6",
@@ -6,6 +12,7 @@
     "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
     "noUnusedLocals": false,
     "sourceMap": true,
     "declaration": false,
@@ -14,12 +21,5 @@
     "skipLibCheck": true,
     "strictPropertyInitialization": true,
     "outDir": "dist"
-  },
-  "include": [
-    "lib/**/*.ts",
-    "index.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  }
 }

@@ -50,7 +50,7 @@ export class User extends Model<User> {
     () => Usergroup,
     () => UserUsergroup
   )
-  usergroups?: User[];
+  usergroups?: Usergroup[];
 
   @CreatedAt
   @Column

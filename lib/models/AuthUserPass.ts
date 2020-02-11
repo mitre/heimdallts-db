@@ -14,6 +14,7 @@ import { Op, fn } from "sequelize";
 import { User } from "./User";
 import { ResetToken } from "./ResetToken";
 
+/*
 @DefaultScope(() => ({
   where: {
     disabled: false, // Don't typically wan't inactive logins
@@ -22,6 +23,7 @@ import { ResetToken } from "./ResetToken";
     }
   }
 }))
+*/
 @Table({
   tableName: "auths_user_pass"
 })

@@ -1,9 +1,11 @@
 {
   "extends": "./tsconfig",
   "exclude": [
-    "index.ts", 
-    "lib/server.ts",
-    "lib/app.ts",
+    "lib/runtime/*",
     "node_modules"
-  ]
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "skipLibCheck": true
+  }
 }
