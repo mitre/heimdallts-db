@@ -7,6 +7,7 @@ import {Input} from "./Input";
 import {Tag} from "./Tag";
 import {Finding} from "./Finding";
 import {WaiverDatum} from './WaiverDatum';
+import {Control} from "./Control";
 import {Result} from "./Result";
 
 @DefaultScope(() => ({
@@ -34,6 +35,13 @@ import {Result} from "./Result";
     include: [{
       model: Profile,
       through: {attributes: []},
+      include: [
+        {
+          model: Control.scope('full'),
+          as: 'controls',
+          required: false,
+        },
+      ],
     },
     {
       model: Statistic,

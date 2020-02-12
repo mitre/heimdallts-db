@@ -36,6 +36,11 @@ import {Result} from './Result';
       model: Result,
       as: 'results',
       required: false,
+    },
+    {
+      model: Tag,
+      as: 'tags',
+      required: false,
     },]
   }
 }))
@@ -57,7 +62,7 @@ export class Control extends Model<Control> {
   @Column
   control_id!: string;
 
-  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
+  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Control"} })
   tags!: Tag[];
 
   @HasMany(() => Ref, 'control_id')

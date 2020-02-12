@@ -1,5 +1,6 @@
-import {Router} from 'express';
-import {Profile} from '../models/Profile';
+import { Router } from 'express';
+import { Profile } from '../models/Profile';
+import { convert_exec_profile } from '../interop';
 
 export const profiles = Router();
 
@@ -16,7 +17,10 @@ profiles.get('/:id', async (req, res, next) => {
   try {
     const profile = await Profile.scope(req.query['scope']).findByPk(req.params['id']);
     console.log(profile);
-    res.json(profiles);
+    let profile_obj = profile ? convert_exec_profile(profile) : null;
+    let JSON_string = profile_obj ? JSON.stringify(profile_obj) : "";
+    console.log("JSON_string: " + JSON_string);
+    res.json(profile);
   } catch (e) {
     console.log("error " + e);
     next(e);

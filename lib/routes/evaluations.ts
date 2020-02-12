@@ -22,6 +22,8 @@ evaluations.get('/:id', async (req, res, next) => {
     let platform = evaluation ? evaluation.getDataValue('platform') : {};
     console.log("Data platform: " + JSON.stringify(platform));
     let eval_obj = evaluation ? convert_execution(evaluation) : null;
+    let plat = eval_obj ? eval_obj['platform'] : 'nada';
+    console.log("eval_obj: " + plat);
     let JSON_string = eval_obj ? JSON.stringify(eval_obj) : "";
     //let value = duration ? duration['duration'] : "";
     console.log("JSON_string: " + JSON_string);

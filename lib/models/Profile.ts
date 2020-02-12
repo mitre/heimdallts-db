@@ -46,7 +46,12 @@ import {Control} from './Control';
         model: Support,
         as: 'supports',
         required: false,
-      }
+      },
+      {
+        model: Control,
+        as: 'controls',
+        required: false,
+      },
     ],
   }
 }))

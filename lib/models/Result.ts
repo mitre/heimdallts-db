@@ -1,6 +1,6 @@
 import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, DataType, UpdatedAt} from 'sequelize-typescript';
 import {Control} from './Control';
-import {Evaluation} from './Evaluation';
+//import {Evaluation} from './Evaluation';
 
 @DefaultScope(() => ({
   attributes: ['id', 'evaluation_id', 'status', 'code_desc', 'skip_message', 'resource', 'run_time', 'start_time',
@@ -39,8 +39,11 @@ export class Result extends Model<Result> {
   @BelongsTo(() => Control, 'control_id')
   control?: Control | null = null;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
-  evaluation?: Evaluation | null = null;
+  //@BelongsTo(() => Evaluation, 'evaluation_id')
+  //evaluation?: Evaluation | null = null;
+
+  @Column(DataType.INTEGER)
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
