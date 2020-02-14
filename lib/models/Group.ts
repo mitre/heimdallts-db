@@ -5,7 +5,8 @@ import {
   Model,
   Table,
   UpdatedAt,
-  DataType
+  DataType,
+  AllowNull
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 
@@ -22,8 +23,13 @@ export class Group extends Model<Group> {
   @Column(DataType.ARRAY(DataType.STRING))
   controls!: string[];
 
-  @BelongsTo(() => Profile, "profile_id")
-  profile?: Profile | null = null;
+  @BelongsTo(() => Profile, {
+    foreignKey: {
+      allowNull: false,
+      name: "profile_id"
+    }
+  })
+  profile?: Profile;
 
   @CreatedAt
   @Column

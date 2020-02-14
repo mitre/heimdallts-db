@@ -19,34 +19,8 @@ import { WaiverDatum } from "./WaiverDatum";
 import { Result } from "./Result";
 
 @Scopes(() => ({
-  full: {
-    include: [
-      {
-        model: WaiverDatum,
-        as: "waiver_data",
-        required: false
-      },
-      {
-        model: Ref,
-        as: "refs",
-        required: false
-      },
-      {
-        model: Description,
-        as: "descriptions",
-        required: false
-      },
-      {
-        model: SourceLocation,
-        as: "source_location",
-        required: false
-      },
-      {
-        model: Result,
-        as: "results",
-        required: false
-      }
-    ]
+  meta: {
+    include: [Ref, Description, SourceLocation, Result, Tag]
   }
 }))
 @Table({
@@ -70,7 +44,7 @@ export class Control extends Model<Control> {
 
   @HasMany(() => Tag, {
     foreignKey: "tagger_id",
-    scope: { tagger_type: "Evaluation" }
+    scope: { tagger_type: "Control" }
   })
   tags!: Tag[];
 

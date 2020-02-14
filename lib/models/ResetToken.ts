@@ -6,7 +6,8 @@ import {
   Table,
   UpdatedAt,
   DataType,
-  BelongsTo
+  BelongsTo,
+  AllowNull
 } from "sequelize-typescript";
 import { Op, fn } from "sequelize";
 import { AuthUserPass } from "./AuthUserPass";
@@ -28,7 +29,12 @@ export class ResetToken extends Model<ResetToken> {
   @Column
   token!: string;
 
-  @BelongsTo(() => AuthUserPass, "auth_user_pass_id")
+  @BelongsTo(() => AuthUserPass, {
+    foreignKey: {
+      name: "auth_user_pass_id",
+      allowNull: false 
+    }
+  })
   auth_user_pass?: AuthUserPass;
 
   @CreatedAt

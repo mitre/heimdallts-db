@@ -4,7 +4,8 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 
@@ -27,8 +28,13 @@ export class Finding extends Model<Finding> {
   @Column
   profile_error!: number;
 
-  @BelongsTo(() => Evaluation, "evaluation_id")
-  evaluation?: Evaluation | null = null;
+  @BelongsTo(() => Evaluation, {
+    foreignKey: {
+      allowNull: false,
+      name: "evaluation_id"
+    }
+  })
+  evaluation?: Evaluation;
 
   @CreatedAt
   @Column

@@ -17,46 +17,10 @@ import { Support } from "./Support";
 import { Control } from "./Control";
 
 @Scopes(() => ({
-  evaluations: {
-    include: [
-      {
-        model: Evaluation,
-        through: { attributes: [] }
-      }
-    ]
-  },
-  controls: {
-    include: [
-      {
-        model: Control,
-        as: "controls",
-        required: false
-      }
-    ]
-  },
-  full: {
-    include: [
-      {
-        model: Input,
-        as: "inputs",
-        required: false
-      },
-      {
-        model: Group,
-        as: "groups",
-        required: false
-      },
-      {
-        model: Depend,
-        as: "depends",
-        required: false
-      },
-      {
-        model: Support,
-        as: "supports",
-        required: false
-      }
-    ]
+  evaluations: { include: [Evaluation] },
+  controls: { include: [Control] },
+  meta: {
+    include: [Group, Depend, Support]
   }
 }))
 @Table({

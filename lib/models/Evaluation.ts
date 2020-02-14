@@ -7,7 +7,8 @@ import {
   BelongsToMany,
   Scopes,
   CreatedAt,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { EvaluationProfile } from "./EvaluationProfile";
@@ -20,50 +21,8 @@ import { WaiverDatum } from "./WaiverDatum";
 import { Result } from "./Result";
 
 @Scopes(() => ({
-  profiles: {
-    include: [
-      {
-        model: Profile,
-        through: { attributes: [] }
-      }
-    ]
-  },
-  statistics: {
-    include: [
-      {
-        model: Statistic,
-        as: "statistic",
-        required: false
-      }
-    ]
-  },
-  full: {
-    include: [
-      {
-        model: Profile,
-        through: { attributes: [] }
-      },
-      {
-        model: Statistic,
-        as: "statistic",
-        required: false
-      },
-      {
-        model: Platform,
-        as: "platform",
-        required: false
-      },
-      {
-        model: Finding,
-        as: "finding",
-        required: false
-      },
-      {
-        model: Tag,
-        as: "tags",
-        required: false
-      }
-    ]
+  meta: {
+    include: [Statistic, Platform, Finding, Tag]
   }
 }))
 @Table({
@@ -73,11 +32,21 @@ export class Evaluation extends Model<Evaluation> {
   @Column
   version!: string;
 
-  @HasOne(() => Statistic, "evaluation_id")
-  statistic?: Statistic | null = null;
+  @HasOne(() => Statistic, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  statistic?: Statistic;
 
-  @HasOne(() => Platform, "evaluation_id")
-  platform?: Platform | null = null;
+  @HasOne(() => Platform, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  platform?: Platform;
 
   @HasMany(() => Input, "evaluation_id")
   inputs?: Input[];
@@ -94,8 +63,13 @@ export class Evaluation extends Model<Evaluation> {
   @HasMany(() => Result, "evaluation_id")
   results!: Result[];
 
-  @HasOne(() => Finding, "evaluation_id")
-  finding?: Finding | null = null;
+  @HasOne(() => Finding, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  finding?: Finding;
 
   @BelongsToMany(
     () => Profile,

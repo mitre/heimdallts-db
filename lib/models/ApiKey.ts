@@ -26,7 +26,7 @@ import { Role } from "./Role";
 export class ApiKey extends Model<ApiKey> {
   @AllowNull(true)
   @Column(DataType.DATE)
-  expiration?: Date | null;
+  expiration?: Date | null = null;
 
   @Column
   key!: string;
@@ -42,7 +42,7 @@ export class ApiKey extends Model<ApiKey> {
       name: "role_id"
     }
   })
-  role?: Role | null;
+  role?: Role;
 
   /** The user which created this key */
   @BelongsTo(() => User, "user_id")

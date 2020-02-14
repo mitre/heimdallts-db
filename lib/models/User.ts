@@ -20,27 +20,27 @@ export class User extends Model<User> {
   /** The first name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  firstName?: string | null;
+  firstName?: string | null = null;
 
   /** The last name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  lastName?: string | null;
+  lastName?: string | null = null;
 
   /** The contact email of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  contactEmail?: string | null;
+  contactEmail?: string | null = null;
 
   /** The filepath to the profile image of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  image?: string | null;
+  image?: string | null = null;
 
   /** The phone number of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  phoneNumber?: string | null;
+  phoneNumber?: string | null = null;
 
   /** The login(s) th */
   @HasMany(() => AuthUserPass, "user_id")

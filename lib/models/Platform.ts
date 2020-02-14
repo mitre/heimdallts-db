@@ -4,7 +4,8 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 
@@ -18,8 +19,13 @@ export class Platform extends Model<Platform> {
   @Column
   release!: string;
 
-  @BelongsTo(() => Evaluation, "evaluation_id")
-  evaluation?: Evaluation | null = null;
+  @BelongsTo(() => Evaluation, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  evaluation?: Evaluation;
 
   @CreatedAt
   @Column

@@ -4,7 +4,8 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 
@@ -18,8 +19,13 @@ export class Support extends Model<Support> {
   @Column
   value!: string;
 
-  @BelongsTo(() => Profile, "profile_id")
-  profile?: Profile | null = null;
+  @BelongsTo(() => Profile, {
+    foreignKey: {
+      name: "profile_id",
+      allowNull: false
+    }
+  })
+  profile?: Profile;
 
   @CreatedAt
   @Column

@@ -4,7 +4,8 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull
 } from "sequelize-typescript";
 import { Control } from "./Control";
 
@@ -18,8 +19,13 @@ export class Description extends Model<Description> {
   @Column
   data!: string;
 
-  @BelongsTo(() => Control, "control_id")
-  control?: Control | null = null;
+  @BelongsTo(() => Control, {
+    foreignKey: {
+      name: "control_id",
+      allowNull: false
+    }
+  })
+  control?: Control;
 
   @CreatedAt
   @Column

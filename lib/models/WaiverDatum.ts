@@ -25,11 +25,21 @@ export class WaiverDatum extends Model<WaiverDatum> {
   @Column
   message!: string;
 
-  @BelongsTo(() => Control, "control_id")
-  control?: Control | null = null;
+  @BelongsTo(() => Control, {
+    foreignKey: {
+      name: "control_id",
+      allowNull: false
+    }
+  })
+  control?: Control;
 
-  @BelongsTo(() => Evaluation, "evaluation_id")
-  evaluation?: Evaluation | null = null;
+  @BelongsTo(() => Evaluation, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  evaluation?: Evaluation;
 
   @CreatedAt
   @Column
