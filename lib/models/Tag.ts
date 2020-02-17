@@ -7,6 +7,11 @@ import {
   DataType
 } from "sequelize-typescript";
 
+export interface TagContent {
+  name: string;
+  value: Required<unknown>;
+}
+
 @Table({
   tableName: "tags"
 })
@@ -18,7 +23,7 @@ export class Tag extends Model<Tag> {
   tagger_type!: string;
 
   @Column(DataType.JSONB)
-  content: unknown;
+  content!: TagContent;
 
   @CreatedAt
   @Column

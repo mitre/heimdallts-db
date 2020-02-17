@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Control } from "../models/Control";
-import { convert_exec_control } from "../interop";
+import { convert_exec_control } from "../output";
 
 export const controls = Router();
 
@@ -13,6 +13,7 @@ controls.get("", async (req, res, next) => {
   }
 });
 
+/** 
 controls.get("/:id", async (req, res, next) => {
   try {
     const control = await Control.scope(req.query["scope"]).findByPk(
@@ -32,3 +33,4 @@ controls.get("/:id", async (req, res, next) => {
     next(e);
   }
 });
+*/

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Profile } from "../models/Profile";
-import { convert_exec_profile } from "../interop";
+import { convert_exec_profile } from "../output";
 
 export const profiles = Router();
 

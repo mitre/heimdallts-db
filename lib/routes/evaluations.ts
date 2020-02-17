@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Evaluation } from "../models/Evaluation";
-import { convert_execution } from "../interop";
+import { convert_evaluation } from "../output";
 
 export const evaluations = Router();
 
@@ -27,7 +27,7 @@ evaluations.get("/:id", async (req, res, next) => {
     console.log("Data version: " + version);
     const platform = await evaluation.$get("platform");
     console.log("Data platform: " + JSON.stringify(platform));
-    const eval_obj = await convert_execution(evaluation);
+    const eval_obj = await convert_evaluation(evaluation);
     const nested_platform = eval_obj.platform;
     console.log("eval_obj: " + nested_platform);
     const JSON_string = JSON.stringify(eval_obj);

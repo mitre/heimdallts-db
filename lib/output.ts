@@ -11,7 +11,6 @@ import { Description } from "./models/Description";
 import { Tag } from "./models/Tag";
 import { Result } from "./models/Result";
 import { Op } from "sequelize";
-import { ControlResultStatus } from "inspecjs/dist/generated_parsers/exec-json"; // TODO: Fix this/??
 
 /** A utility function which checks if the specified key is present in the object x,
  * and if not, throws an error.
@@ -28,12 +27,6 @@ function mandate<T, K extends keyof T>(x: T, key: K): x is Required<T> {
 export async function convert_evaluation(
   db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Execution> {
-  // Check we have required info (at this level)
-  //mandate(db_eval, "evaluations_profiles");
-  //mandate(db_eval.getDataValue('statistic'), "statistic");
-  //mandate(db_eval, "platform");
-  // mandate(db_eval, "version");
-
   // Convert the profiles
   const raw_profiles = await db_eval.$get("profiles");
   const converted_profiles: schemas_1_0.ExecJSON.Profile[] = [];
@@ -57,9 +50,7 @@ export async function convert_evaluation(
 
 export async function convert_platform(
   db_platform: Platform
-): Promise<schemas_1_0.ExecJSON.Execution["platform"]> {
-  mandate(db_platform, "name");
-  mandate(db_platform, "release");
+): Promise<schemas_1_0.ExecJSON.Platform> {
   // mandate(db_platform, "target_id")
   console.log("db_platform: " + db_platform);
   return {
@@ -72,7 +63,7 @@ export async function convert_platform(
 // Since we store duration as string but inspecjs expects a number (which should maybe be reconsidered...?), need this
 export async function convert_statistics(
   db_statistics: Statistic
-): Promise<schemas_1_0.ExecJSON.Execution["statistics"]> {
+): Promise<schemas_1_0.ExecJSON.Statistics> {
   mandate(db_statistics, "duration");
   // There's nothing else!
   console.log("db_statistics.duration: " + db_statistics.duration);
@@ -87,20 +78,19 @@ export async function convert_statistics(
 
 export async function convert_exec_profile(
   db_profile: Profile,
-  eval_id: number
+  db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Profile> {
   // Mandate
   mandate(db_profile, "name");
   mandate(db_profile, "sha256");
 
-  console.log("profile: " + db_profile.name + ", eval_id: " + eval_id);
+  console.log("profile: " + db_profile.name);
   // Convert the controls
   const raw_controls = await db_profile.$get("controls");
   const controls: schemas_1_0.ExecJSON.Control[] = [];
   for (const c of raw_controls) {
-    controls.push(await convert_exec_control(c, eval_id));
+    controls.push(await convert_exec_control(c, db_eval));
   }
-  //let controls: schemas_1_0.ExecJSON.Control[] = [];
 
   return {
     attributes: [], // TODO: These aren't in the DB in proper place?!?! db_profile.
@@ -129,7 +119,7 @@ export async function convert_exec_profile(
 
 export function convert_groups(
   db_groups: Group[]
-): schemas_1_0.ExecJSON.Profile["groups"] {
+): schemas_1_0.ExecJSON.ControlGroup[] {
   if (db_groups == null) {
     return [];
   } else {
@@ -145,7 +135,7 @@ export function convert_groups(
 
 export function convert_supports(
   db_supports: Support[]
-): schemas_1_0.ExecJSON.Profile["supports"] {
+): schemas_1_0.ExecJSON.SupportedPlatform[] {
   if (db_supports == null) {
     return [];
   } else {
@@ -161,7 +151,7 @@ export function convert_supports(
 
 export async function convert_exec_control(
   db_control: Control,
-  eval_id: number
+  db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Control> {
   // Mandates
   mandate(db_control, "id");
@@ -170,13 +160,13 @@ export async function convert_exec_control(
   // We handle this differently based on if eval id defined
   //mandate(db_control, "source_location");
 
-  console.log("control: " + db_control.control_id + ", eval_id: " + eval_id);
+  console.log("control: " + db_control.control_id);
   // Fetch our results, properly
   // TODO: Make this a more efficient operation.
   const results_list = await db_control.$get("results", {
     where: {
       evaluation_id: {
-        [Op.eq]: eval_id
+        [Op.eq]: db_eval.id
       }
     }
   });
@@ -199,57 +189,41 @@ export async function convert_exec_control(
   };
 }
 
-export function convert_refs(
-  db_refs: Ref[]
-): schemas_1_0.ExecJSON.Control["refs"] {
-  // Really just gotta remove nulls, because for some reason those are not accepted by the schema
-  if (db_refs == null) {
-    return [];
-  } else {
-    return db_refs.map(r => {
-      return {
-        ref: r.ref || undefined,
-        url: r.url || undefined,
-        uri: r.uri || undefined
-      };
-    });
-  }
+export function convert_refs(db_refs: Ref[]): schemas_1_0.ExecJSON.Reference[] {
+  return db_refs.map(r => ({
+    ref: r.ref || undefined,
+    url: r.url || undefined,
+    uri: r.uri || undefined
+  }));
 }
 
 export function convert_descriptions(
   db_descriptions: Description[]
-): schemas_1_0.ExecJSON.Control["descriptions"] {
-  if (db_descriptions == null) {
-    return [];
-  } else {
-    return db_descriptions.map(desc => {
-      // Mandates. We will almost definitely relax this later
-      mandate(desc, "label");
-      mandate(desc, "data");
+): schemas_1_0.ExecJSON.ControlDescription[] {
+  return db_descriptions.map(desc => {
+    // Mandates. We will almost definitely relax this later
+    mandate(desc, "label");
+    mandate(desc, "data");
 
-      return { label: desc.label, data: desc.data };
-    });
-  }
+    return { label: desc.label, data: desc.data };
+  });
 }
 
 export function convert_control_tags(
   db_tags: Tag[]
 ): schemas_1_0.ExecJSON.Control["tags"] {
-  // Really just gotta remove nulls, because for some reason those are not accepted by the schema
-  if (db_tags == null) {
-    return [];
-  } else {
-    return db_tags.map(r => {
-      return {
-        content: r.content || undefined
-      };
-    });
+  const tags: schemas_1_0.ExecJSON.Control["tags"] = {};
+  for (const t of db_tags) {
+    const key = t.content.name;
+    const value = t.content.value;
+    tags[key] = value;
   }
+  return tags;
 }
 
 export function convert_results(
   db_results: Result[]
-): schemas_1_0.ExecJSON.Control["results"] {
+): schemas_1_0.ExecJSON.ControlResult[] {
   return db_results.map(r => {
     // Mandatus!
     mandate(r, "code_desc");
@@ -267,7 +241,7 @@ export function convert_results(
       run_time: r.run_time,
       skip_message: r.skip_message,
       start_time: start_date.toDateString(),
-      status: r.status as ControlResultStatus
+      status: r.status as schemas_1_0.ExecJSON.ControlResultStatus
     };
   });
 }
