@@ -9,7 +9,7 @@ import {
 } from "sequelize-typescript";
 import { Role } from "./Role";
 import { User } from "./User";
-import { UserUsergroup } from "./UserUserGroup";
+import { UserUsergroup } from "./UserUsergroup";
 import { UsergroupRole } from "./UsergroupRole";
 
 @Table({

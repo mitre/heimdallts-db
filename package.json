@@ -2,7 +2,7 @@
   "name": "hdf-db-sequelize",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/index.ts",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "start": "node --require ts-node/register lib/runtime/main.ts",

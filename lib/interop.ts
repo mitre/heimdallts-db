@@ -25,7 +25,7 @@ function mandate<T, K extends keyof T>(x: T, key: K): x is Required<T> {
   }
 }
 
-export async function convert_execution(
+export async function convert_evaluation(
   db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Execution> {
   // Check we have required info (at this level)
@@ -127,7 +127,7 @@ export async function convert_exec_profile(
   };
 }
 
-function convert_groups(
+export function convert_groups(
   db_groups: Group[]
 ): schemas_1_0.ExecJSON.Profile["groups"] {
   if (db_groups == null) {
@@ -143,7 +143,7 @@ function convert_groups(
   }
 }
 
-function convert_supports(
+export function convert_supports(
   db_supports: Support[]
 ): schemas_1_0.ExecJSON.Profile["supports"] {
   if (db_supports == null) {
@@ -199,7 +199,9 @@ export async function convert_exec_control(
   };
 }
 
-function convert_refs(db_refs: Ref[]): schemas_1_0.ExecJSON.Control["refs"] {
+export function convert_refs(
+  db_refs: Ref[]
+): schemas_1_0.ExecJSON.Control["refs"] {
   // Really just gotta remove nulls, because for some reason those are not accepted by the schema
   if (db_refs == null) {
     return [];
@@ -214,7 +216,7 @@ function convert_refs(db_refs: Ref[]): schemas_1_0.ExecJSON.Control["refs"] {
   }
 }
 
-function convert_descriptions(
+export function convert_descriptions(
   db_descriptions: Description[]
 ): schemas_1_0.ExecJSON.Control["descriptions"] {
   if (db_descriptions == null) {
@@ -230,7 +232,7 @@ function convert_descriptions(
   }
 }
 
-function convert_control_tags(
+export function convert_control_tags(
   db_tags: Tag[]
 ): schemas_1_0.ExecJSON.Control["tags"] {
   // Really just gotta remove nulls, because for some reason those are not accepted by the schema
@@ -245,7 +247,7 @@ function convert_control_tags(
   }
 }
 
-function convert_results(
+export function convert_results(
   db_results: Result[]
 ): schemas_1_0.ExecJSON.Control["results"] {
   return db_results.map(r => {

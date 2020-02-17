@@ -10,7 +10,7 @@ import {
   BelongsToMany
 } from "sequelize-typescript";
 import { AuthUserPass } from "./AuthUserPass";
-import { UserUsergroup } from "./UserUserGroup";
+import { UserUsergroup } from "./UserUsergroup";
 import { Usergroup } from "./Usergroup";
 
 @Table({
