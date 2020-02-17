@@ -1,4 +1,4 @@
-import { parse, schemas_1_0, SegmentStatus } from "inspecjs";
+import { schemas_1_0 } from "inspecjs";
 import { Evaluation } from "./models/Evaluation";
 import { Platform } from "./models/Platform";
 import { Statistic } from "./models/Statistic";
@@ -10,8 +10,8 @@ import { Ref } from "./models/Ref";
 import { Description } from "./models/Description";
 import { Tag } from "./models/Tag";
 import { Result } from "./models/Result";
-import { Op, fn } from "sequelize";
-import { ControlResultStatus } from "inspecjs/dist/generated_parsers/exec-json";
+import { Op } from "sequelize";
+import { ControlResultStatus } from "inspecjs/dist/generated_parsers/exec-json"; // TODO: Fix this/??
 
 /** A utility function which checks if the specified key is present in the object x,
  * and if not, throws an error.
@@ -95,8 +95,7 @@ export async function convert_exec_profile(
 
   console.log("profile: " + db_profile.name + ", eval_id: " + eval_id);
   // Convert the controls
-  const control_list = db_profile.getDataValue("controls");
-  const raw_controls = control_list ? control_list : [];
+  const raw_controls = await db_profile.$get("controls");
   const controls: schemas_1_0.ExecJSON.Control[] = [];
   for (const c of raw_controls) {
     controls.push(await convert_exec_control(c, eval_id));
@@ -162,7 +161,7 @@ function convert_supports(
 
 export async function convert_exec_control(
   db_control: Control,
-  eval_id?: number
+  eval_id: number
 ): Promise<schemas_1_0.ExecJSON.Control> {
   // Mandates
   mandate(db_control, "id");

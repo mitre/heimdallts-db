@@ -5,8 +5,7 @@ import {
   Model,
   Table,
   UpdatedAt,
-  DataType,
-  AllowNull
+  DataType
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 import { Profile } from "./Profile";

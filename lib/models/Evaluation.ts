@@ -7,8 +7,7 @@ import {
   BelongsToMany,
   Scopes,
   CreatedAt,
-  UpdatedAt,
-  AllowNull
+  UpdatedAt
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { EvaluationProfile } from "./EvaluationProfile";

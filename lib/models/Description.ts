@@ -4,8 +4,7 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt,
-  AllowNull
+  UpdatedAt
 } from "sequelize-typescript";
 import { Control } from "./Control";
 

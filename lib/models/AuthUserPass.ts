@@ -1,7 +1,6 @@
 import {
   BelongsTo,
   Column,
-  DefaultScope,
   CreatedAt,
   Model,
   Table,
@@ -10,7 +9,7 @@ import {
   DataType,
   HasMany
 } from "sequelize-typescript";
-import { Op, fn } from "sequelize";
+//import { Op, fn } from "sequelize";
 import { User } from "./User";
 import { ResetToken } from "./ResetToken";
 
