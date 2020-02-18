@@ -11,6 +11,9 @@ import { Description } from "./models/Description";
 import { Tag } from "./models/Tag";
 import { Result } from "./models/Result";
 import { Op } from "sequelize";
+import { Depend } from "./models/Depend";
+import { Input } from "./models/Input";
+import { WaiverDatum } from "./models/WaiverDatum";
 
 /** A utility function which checks if the specified key is present in the object x,
  * and if not, throws an error.
@@ -65,14 +68,9 @@ export async function convert_statistics(
   db_statistics: Statistic
 ): Promise<schemas_1_0.ExecJSON.Statistics> {
   mandate(db_statistics, "duration");
-  // There's nothing else!
-  console.log("db_statistics.duration: " + db_statistics.duration);
-  let dur: number | null = Number.parseFloat(db_statistics.duration);
-  if (Number.isNaN(dur)) {
-    dur = null;
-  }
+  const dur: number = Number.parseFloat(db_statistics.duration);
   return {
-    duration: dur
+    duration: Number.isNaN(dur) ? null : dur
   };
 }
 
@@ -80,11 +78,6 @@ export async function convert_exec_profile(
   db_profile: Profile,
   db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Profile> {
-  // Mandate
-  mandate(db_profile, "name");
-  mandate(db_profile, "sha256");
-
-  console.log("profile: " + db_profile.name);
   // Convert the controls
   const raw_controls = await db_profile.$get("controls");
   const controls: schemas_1_0.ExecJSON.Control[] = [];
@@ -92,18 +85,24 @@ export async function convert_exec_profile(
     controls.push(await convert_exec_control(c, db_eval));
   }
 
+  // Get the attributes
+  const raw_attributes = await db_profile.$get("inputs", {
+    where: {
+      evaluation_id: db_eval.id
+    }
+  });
+  const attributes = convert_inputs(raw_attributes);
+
   return {
-    attributes: [], // TODO: These aren't in the DB in proper place?!?! db_profile.
+    attributes: attributes,
     groups: convert_groups(await db_profile.$get("groups")),
     name: db_profile.name,
     sha256: db_profile.sha256,
-    supports: convert_supports(
-      (await db_profile.$get("supports")) as Support[]
-    ),
+    supports: convert_supports(await db_profile.$get("supports")),
     copyright: db_profile.copyright,
     copyright_email: db_profile.copyright_email,
     depends: db_profile.depends,
-    description: null, // db_profile.desc,
+    description: db_profile.description, // db_profile.desc,
     inspec_version: null, // TODO: We should track this
     license: db_profile.license,
     maintainer: db_profile.maintainer,
@@ -136,17 +135,14 @@ export function convert_groups(
 export function convert_supports(
   db_supports: Support[]
 ): schemas_1_0.ExecJSON.SupportedPlatform[] {
-  if (db_supports == null) {
-    return [];
-  } else {
-    return db_supports.map(s => {
-      return {
-        // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
-        // Rob will probably know but he was offline when I encountered this.
-        platform: s.value
-      };
-    });
-  }
+  console.error("Error parsing support;");
+  return db_supports.map(s => {
+    return {
+      // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
+      // Rob will probably know but he was offline when I encountered this.
+      platform: s.value
+    };
+  });
 }
 
 export async function convert_exec_control(
@@ -157,21 +153,25 @@ export async function convert_exec_control(
   mandate(db_control, "id");
   mandate(db_control, "impact");
 
-  // We handle this differently based on if eval id defined
-  //mandate(db_control, "source_location");
-
-  console.log("control: " + db_control.control_id);
-  // Fetch our results, properly
-  // TODO: Make this a more efficient operation.
-  const results_list = await db_control.$get("results", {
+  // Get the results for this control
+  const db_results = await db_control.$get("results", {
     where: {
       evaluation_id: {
         [Op.eq]: db_eval.id
       }
     }
   });
-  const results = convert_results(results_list);
-  //let results: schemas_1_0.ExecJSON.Control["results"] = [];
+  const results = convert_results(db_results);
+
+  // Get the waiver data for this control
+  const db_waivers = await db_control.$get("waiver_data", {
+    where: {
+      evaluation_id: {
+        [Op.eq]: db_eval.id
+      }
+    }
+  });
+  const waiver = db_waivers.length ? convert_waiver(db_waivers[0]) : null;
 
   // Reformatting
   return {
@@ -184,7 +184,7 @@ export async function convert_exec_control(
     desc: db_control.desc,
     descriptions: convert_descriptions(await db_control.$get("descriptions")),
     title: db_control.title,
-    //waiver_data: convert_waiver(db_control.waiver_data), // TODO: This REALLY shoudn't be coming from here
+    waiver_data: waiver, // TODO: This REALLY shoudn't be coming from here
     results
   };
 }
@@ -244,4 +244,37 @@ export function convert_results(
       status: r.status as schemas_1_0.ExecJSON.ControlResultStatus
     };
   });
+}
+
+export function convert_dependency(
+  dep: Depend
+): schemas_1_0.ExecJSON.ProfileDependency {
+  return new Depend({
+    name: dep.name,
+    path: dep.path,
+    url: dep.url,
+    status: dep.status,
+    git: dep.git,
+    branch: dep.branch
+    // compliance: dep.compliance, // TODO: Add compliance
+    // supermarket: dep.supermarket, // TODO: Add supermarket
+  });
+}
+
+export function convert_inputs(
+  i: Input[]
+): schemas_1_0.ExecJSON.Profile["attributes"] {
+  console.warn("Inputs not yet properly supported");
+  return i;
+}
+
+export function convert_waiver(
+  c: WaiverDatum
+): schemas_1_0.ExecJSON.ControlWaiverData {
+  return {
+    justification: c.justification,
+    run: c.run,
+    skipped_due_to_waiver: c.skipped_due_to_waiver ? "skipped" : undefined,
+    message: c.message
+  };
 }
