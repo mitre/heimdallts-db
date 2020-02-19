@@ -27,7 +27,7 @@ if (
 
 const port = process.env.PORT || 3030;
 
-console.log("Database: " + process.env.DATABASE);
+console.info("Database: " + process.env.DATABASE);
 
 async function main(): Promise<void> {
   await sequelize.sync({ force: false });

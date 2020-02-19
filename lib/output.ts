@@ -39,23 +39,25 @@ export async function convert_evaluation(
 
   // Done!
   const result: schemas_1_0.ExecJSON.Execution = {
-    platform: await convert_platform(
-      (await db_eval.$get("platform")) as Platform
-    ),
-    statistics: await convert_statistics(
-      (await db_eval.$get("statistic")) as Statistic
-    ),
+    platform: await db_eval
+      .$get("platform")
+      .then(required)
+      .then(convert_platform),
+    statistics: await db_eval
+      .$get("statistic")
+      .then(required)
+      .then(convert_statistics)
+      .catchReturn({}),
     version: db_eval.version,
     profiles: converted_profiles
   };
   return result;
 }
 
-export async function convert_platform(
+export function convert_platform(
   db_platform: Platform
-): Promise<schemas_1_0.ExecJSON.Platform> {
+): schemas_1_0.ExecJSON.Platform {
   // mandate(db_platform, "target_id")
-  console.log("db_platform: " + db_platform);
   return {
     name: db_platform.name,
     release: db_platform.release,
@@ -64,9 +66,9 @@ export async function convert_platform(
 }
 
 // Since we store duration as string but inspecjs expects a number (which should maybe be reconsidered...?), need this
-export async function convert_statistics(
+export function convert_statistics(
   db_statistics: Statistic
-): Promise<schemas_1_0.ExecJSON.Statistics> {
+): schemas_1_0.ExecJSON.Statistics {
   mandate(db_statistics, "duration");
   const dur: number = Number.parseFloat(db_statistics.duration);
   return {
@@ -277,4 +279,12 @@ export function convert_waiver(
     skipped_due_to_waiver: c.skipped_due_to_waiver ? "skipped" : undefined,
     message: c.message
   };
+}
+
+export class RequiredException extends Error {}
+export async function required<T>(v: T | undefined | null): Promise<T> {
+  if (v === undefined || v === null) {
+    throw new RequiredException();
+  }
+  return v;
 }

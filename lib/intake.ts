@@ -18,7 +18,7 @@ import { WaiverDatum } from "./models/WaiverDatum";
 
 /* TODO: Integrate transactions */
 
-export async function upload_evaluation(
+export async function intake_evaluation(
   evaluation: parse.AnyExec
 ): Promise<Evaluation> {
   // Build the outer Evaluation scaffolding data
@@ -26,17 +26,11 @@ export async function upload_evaluation(
   const statistic = await intake_statistics(evaluation.statistics);
   const finding = await intake_finding_for(evaluation);
 
-  // Create it
-  const db_evaluation = await Evaluation.create({
-    platform,
-    statistic,
-    finding
-    // waiver_data: [],
-    // inputs: [],
-    // results: [],
-    // profiles: [],
-    // tags: []
-  });
+  // Init lists for the rest
+  const profiles: Profile[] = [];
+  const inputs: Input[] = [];
+  const results: Result[] = [];
+  const waiver_data: WaiverDatum[] = [];
 
   // Convert the profiles
   const raw_profiles = evaluation.profiles;
@@ -47,11 +41,13 @@ export async function upload_evaluation(
     const db_profile = await fetch_or_create(raw_profile);
 
     // Establish relation to the evaluation
-    db_evaluation.$add("profile", db_profile);
+    profiles.push(db_profile);
 
     // Handle inputs
-    const inputs = await intake_inputs_from(raw_profile);
-    db_evaluation.$add("inputs", inputs);
+    for (const i of await intake_inputs_from(raw_profile)) {
+      i.$set("profile", db_profile);
+      inputs.push(i);
+    }
 
     // Build out a mapping of the db controls by their ids
     const db_controls: { [key: string]: Control } = {};
@@ -66,23 +62,36 @@ export async function upload_evaluation(
       // Get the waiver data, and handle linking it
       if (raw_control.waiver_data) {
         const wd = await intake_waiver_data(raw_control.waiver_data);
-        wd.$set("evaluation", db_evaluation);
         wd.$set("control", db_control);
-        wd.save();
+        waiver_data.push(wd);
       }
 
       // Process each result and link it
       for (const result of raw_control.results) {
         const res = await intake_result(result);
-        res.$set("evaluation", db_evaluation);
         res.$set("control", db_control);
-        res.save();
+        results.push(res);
       }
     }
 
     await db_profile.save();
   }
 
+  // Create it
+  const db_evaluation = await Evaluation.build({
+    platform,
+    statistic,
+    finding,
+    version: evaluation.version
+    // tags: []
+  });
+  await db_evaluation.$set("waiver_data", waiver_data);
+  await db_evaluation.save();
+  await db_evaluation.$set("inputs", inputs);
+  await db_evaluation.save();
+  await db_evaluation.$set("results", results);
+  await db_evaluation.save();
+  await db_evaluation.$set("profiles", profiles);
   await db_evaluation.save();
   return db_evaluation;
 }
@@ -104,34 +113,43 @@ export async function fetch_or_create(
     }
   }).then(found => {
     if (found) {
+      console.log(`Found profile ${found.name}`);
       return found;
     } else {
       // Otherwise build
+      console.log(`Building a new profile for ${profile.name}`);
       return intake_exec_profile_no_results(profile);
     }
   });
 }
 
+/** Creates a DB record for the given platform.
+ * Does not save.
+ */
 export async function intake_platform(
   platform: schemas_1_0.ExecJSON.Platform
 ): Promise<Platform> {
-  return Platform.create({
+  return Platform.build({
     name: platform.name,
     release: platform.release
   });
 }
 
-// Since we store duration as string but inspecjs expects a number (which should maybe be reconsidered...?), need this
+/** Creates a DB record for the given statistic.
+ * Does not save.
+ */
 export async function intake_statistics(
   statistics: schemas_1_0.ExecJSON.Statistics
 ): Promise<Statistic> {
-  return Statistic.create({
-    duration: statistics.duration
+  return Statistic.build({
+    duration: `${statistics.duration}`
   });
 }
 
-// Converts a profile without keeping any specific results
-// Use this for the first-time intake of a given profile
+/** Creates a DB record for the given profile, but with all run-specific information stripped.
+ * Use this for the first-time intake of a given profile
+ * DOES save!
+ */
 export async function intake_exec_profile_no_results(
   profile: schemas_1_0.ExecJSON.Profile
 ): Promise<Profile> {
@@ -145,15 +163,12 @@ export async function intake_exec_profile_no_results(
     profile.depends?.map(intake_dependency) || []
   );
 
-  return new Profile({
+  return Profile.create({
     name: profile.name,
     sha256: profile.sha256,
-    supports: supports,
     copyright: profile.copyright || undefined,
     copyright_email: profile.copyright_email || undefined,
-    depends: depends,
     description: profile.description || undefined,
-    groups: groups,
     // inspec_version: null, // TODO: We should track this
     license: profile.license || undefined,
     maintainer: profile.maintainer || undefined,
@@ -163,21 +178,30 @@ export async function intake_exec_profile_no_results(
     summary: profile.summary || undefined,
     title: profile.title || undefined,
     version: profile.version || undefined,
-    controls
+    controls,
+    depends: depends,
+    supports: supports,
+    groups: groups
     // inputs: [] // Initally empty
   });
 }
 
+/** Creates a DB record for the given group.
+ * Does not save.
+ */
 export async function intake_group(
   group: schemas_1_0.ExecJSON.ControlGroup
 ): Promise<Group> {
-  return Group.create({
+  return Group.build({
     control_id: group.id,
     controls: group.controls,
     title: group.title
   });
 }
 
+/** Creates a DB record for the given support.
+ * Does not save.
+ */
 export async function intake_support(
   support: schemas_1_0.ExecJSON.SupportedPlatform
 ): Promise<Support> {
@@ -191,12 +215,16 @@ export async function intake_support(
     ft("os-name") +
     ft("platform");
   const version = support.release || "";
-  return Support.create({
+  return Support.build({
     name: name,
     value: version
   });
 }
 
+/** Creates a DB record for the given control.
+ * This does NOT include results!
+ * Does not save.
+ */
 export async function intake_exec_control_no_results(
   control: schemas_1_0.ExecJSON.Control
 ): Promise<Control> {
@@ -208,7 +236,7 @@ export async function intake_exec_control_no_results(
     : [];
 
   // Reformatting
-  return Control.create({
+  return Control.build({
     control_id: control.id,
     impact: control.impact,
     refs: refs,
@@ -223,21 +251,27 @@ export async function intake_exec_control_no_results(
   });
 }
 
+/** Creates a DB record for the given ref.
+ * Does not save.
+ */
 export async function intake_ref(
   ref: schemas_1_0.ExecJSON.Reference
 ): Promise<Ref> {
   // Really just gotta remove nulls, because for some reason those are not accepted by the schema
-  return Ref.create({
+  return Ref.build({
     ref: ref.ref || undefined,
     url: ref.url || undefined,
     uri: ref.uri || undefined
   });
 }
 
+/** Creates a DB record for the given dependency.
+ * Does not save.
+ */
 export async function intake_dependency(
   dep: schemas_1_0.ExecJSON.ProfileDependency
 ): Promise<Depend> {
-  return Depend.create({
+  return Depend.build({
     name: dep.name,
     path: dep.path,
     url: dep.url,
@@ -249,19 +283,25 @@ export async function intake_dependency(
   });
 }
 
+/** Creates a DB record for the given descripion
+ * Does not save.
+ */
 export async function intake_description(
   desc: schemas_1_0.ExecJSON.ControlDescription
 ): Promise<Description> {
-  return Description.create({ label: desc.label, data: desc.data });
+  return Description.build({ label: desc.label, data: desc.data });
 }
 
+/** Creates a DB record for the given control tag.
+ * Does not save.
+ */
 export async function intake_control_tags(
   tags: schemas_1_0.ExecJSON.Control["tags"]
 ): Promise<Tag[]> {
   const result: Tag[] = [];
   for (const key in tags) {
     result.push(
-      await Tag.create({
+      await Tag.build({
         name: key,
         value: tags[key]
       })
@@ -270,13 +310,16 @@ export async function intake_control_tags(
   return result;
 }
 
+/** Creates a DB record for the given result.
+ * Does not save.
+ */
 export async function intake_result(
   r: schemas_1_0.ExecJSON.ControlResult
 ): Promise<Result> {
   // Parse the date if possible
   const date = new Date(r.start_time);
 
-  return Result.create({
+  return Result.build({
     backtrace: r.backtrace,
     code_desc: r.code_desc,
     exception: r.exception,
@@ -289,14 +332,16 @@ export async function intake_result(
   });
 }
 
-/** Given a profile, uploads its inputs and returns their DB model references. */
+/** Given a profile, uploads its inputs and returns their DB model references.
+ * Does not save
+ */
 export async function intake_inputs_from(
   p: schemas_1_0.ExecJSON.Profile
 ): Promise<Input[]> {
   console.warn("Inputs not yet properly supported");
   const result: Input[] = [];
   for (const attribute of p.attributes) {
-    const rv = await Input.create({
+    const rv = await Input.build({
       name: attribute["name"],
       value: attribute["value"]
     });
@@ -305,6 +350,10 @@ export async function intake_inputs_from(
   return result;
 }
 
+/** Creates a DB record for the given Finding.
+ * Since findings aren't actually in the schema usually, we generate one here
+ * Does not save.
+ */
 export async function intake_finding_for(e: parse.AnyExec): Promise<Finding> {
   // Initialize our counts
   const counts = {
@@ -317,13 +366,16 @@ export async function intake_finding_for(e: parse.AnyExec): Promise<Finding> {
 
   // Count each control ----- we'll get to this later, haha.
   console.warn("Findings are not yet properly counted");
-  return Finding.create({ ...counts });
+  return Finding.build({ ...counts });
 }
 
+/** Creates a DB record for the given waiver data.
+ * Does not save.
+ */
 export async function intake_waiver_data(
   c: schemas_1_0.ExecJSON.ControlWaiverData
 ): Promise<WaiverDatum> {
-  return WaiverDatum.create({
+  return WaiverDatum.build({
     justification: c.justification,
     run: c.run,
     skipped_due_to_waiver: c.skipped_due_to_waiver ? true : false,
