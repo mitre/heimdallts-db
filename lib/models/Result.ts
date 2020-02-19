@@ -18,7 +18,7 @@ export class Result extends Model<Result> {
   @Column
   status!: string;
 
-  @Column
+  @Column(DataType.TEXT)
   code_desc!: string;
 
   @Column
@@ -33,7 +33,7 @@ export class Result extends Model<Result> {
   @Column
   start_time!: Date;
 
-  @Column
+  @Column(DataType.TEXT)
   message!: string;
 
   @Column

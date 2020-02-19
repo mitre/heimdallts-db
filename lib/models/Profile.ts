@@ -84,7 +84,9 @@ export class Profile extends Model<Profile> {
 
   @BelongsToMany(
     () => Profile,
-    () => DependantParent, "dependant_id", "parent_id"
+    () => DependantParent,
+    "dependant_id",
+    "parent_id"
   )
   parents?: Profile[];
 

@@ -121,39 +121,31 @@ export async function convert_exec_profile(
 export function convert_groups(
   db_groups: Group[]
 ): schemas_1_0.ExecJSON.ControlGroup[] {
-  if (db_groups == null) {
-    return [];
-  } else {
-    return db_groups.map(g => {
-      return {
-        id: g.control_id,
-        controls: g.controls,
-        title: g.title
-      };
-    });
-  }
+  return db_groups.map(g => {
+    return {
+      id: g.control_id,
+      controls: g.controls,
+      title: g.title
+    };
+  });
 }
 
 export function convert_supports(
   db_supports: Support[]
 ): schemas_1_0.ExecJSON.SupportedPlatform[] {
-  if (db_supports == null) {
-    return [];
-  } else {
-    return db_supports.map(s => {
-      return {
-        // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
-        // Rob will probably know but he was offline when I encountered this.
-        os_family: s.os_family,
-        os_name: s.os_name,
-        platform: s.platform,
-        platform_family: s.platform_family,
-        platform_name: s.platform_name,
-        release: s.release,
-        inspec_version: s.inspec_version
-      };
-    });
-  }
+  return db_supports.map(s => {
+    return {
+      // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
+      // Rob will probably know but he was offline when I encountered this.
+      os_family: s.os_family,
+      os_name: s.os_name,
+      platform: s.platform,
+      platform_family: s.platform_family,
+      platform_name: s.platform_name,
+      release: s.release,
+      inspec_version: s.inspec_version
+    };
+  });
 }
 
 export async function convert_exec_control(

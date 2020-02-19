@@ -33,7 +33,7 @@ export class Control extends Model<Control> {
   @Column
   desc!: string;
 
-  @Column
+  @Column(DataType.FLOAT)
   impact!: number;
 
   @Column(DataType.TEXT)

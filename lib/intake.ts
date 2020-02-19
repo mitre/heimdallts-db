@@ -1,4 +1,4 @@
-import { schemas_1_0, parse, nist } from "inspecjs";
+import { schemas_1_0, parse } from "inspecjs";
 import { Evaluation } from "./models/Evaluation";
 import { Platform } from "./models/Platform";
 import { Statistic } from "./models/Statistic";
@@ -10,7 +10,6 @@ import { Ref } from "./models/Ref";
 import { Description } from "./models/Description";
 import { Tag } from "./models/Tag";
 import { Result } from "./models/Result";
-import { Op } from "sequelize";
 import { Depend } from "./models/Depend";
 import { Input } from "./models/Input";
 import { Finding } from "./models/Finding";
@@ -21,13 +20,22 @@ import { WaiverDatum } from "./models/WaiverDatum";
 export async function intake_evaluation(
   evaluation: parse.AnyExec
 ): Promise<Evaluation> {
+  // Create it, and assign its top-level attributes
+  const db_eval = await Evaluation.create({
+    version: evaluation.version
+  });
+
   // Build the outer Evaluation scaffolding data
-  const platform = await intake_platform(evaluation.platform);
-  const statistic = await intake_statistics(evaluation.statistics);
-  const finding = await intake_finding_for(evaluation);
+  const platform = await intake_platform(evaluation.platform, db_eval);
+  const statistic = await intake_statistics(evaluation.statistics, db_eval);
+  const finding = await intake_finding_for(evaluation, db_eval);
+
+  // Link them up
+  // await db_eval.$set("platform", platform);
+  // await db_eval.$set("statistic", statistic);
+  // await db_eval.$set("finding", finding);
 
   // Init lists for the rest
-  const profiles: Profile[] = [];
   const inputs: Input[] = [];
   const results: Result[] = [];
   const waiver_data: WaiverDatum[] = [];
@@ -41,11 +49,14 @@ export async function intake_evaluation(
     const db_profile = await fetch_or_create(raw_profile);
 
     // Establish relation to the evaluation
-    profiles.push(db_profile);
+    //console.log(35);
+    await db_eval.$add("profiles", db_profile);
 
     // Handle inputs
-    for (const i of await intake_inputs_from(raw_profile)) {
-      i.$set("profile", db_profile);
+    for (const i of await intake_inputs_from(raw_profile, db_profile)) {
+      await i.$set("profile", db_profile);
+      await i.$set("evaluation", db_eval);
+      await i.save();
       inputs.push(i);
     }
 
@@ -61,15 +72,26 @@ export async function intake_evaluation(
 
       // Get the waiver data, and handle linking it
       if (raw_control.waiver_data) {
-        const wd = await intake_waiver_data(raw_control.waiver_data);
-        wd.$set("control", db_control);
+        const wd = await intake_waiver_data(
+          raw_control.waiver_data,
+          db_control,
+          db_eval
+        );
+        await wd.$set("control", db_control);
+        await wd.$set("evaluation", db_eval);
+        await wd.save();
         waiver_data.push(wd);
       }
 
       // Process each result and link it
       for (const result of raw_control.results) {
-        const res = await intake_result(result);
-        res.$set("control", db_control);
+        const res = await intake_result(result, db_control, db_eval);
+        // await res.$set("control", db_control);
+        // await res.$set("evaluation", db_eval);
+        // await res.save();
+        await db_eval.$add("results", res);
+        // await db_control.$add("results", res);
+        await res.save();
         results.push(res);
       }
     }
@@ -77,23 +99,300 @@ export async function intake_evaluation(
     await db_profile.save();
   }
 
-  // Create it
-  const db_evaluation = await Evaluation.build({
-    platform,
-    statistic,
-    finding,
-    version: evaluation.version
-    // tags: []
+  // Now save all multiplicity-children
+  // await Promise.all(db_eval.$set("inputs", inputs), db_eval.$set("con"));
+  /*
+  await Promise.all([
+    ...waiver_data.map(wd => wd.save),
+    ...inputs.map(i => i.save),
+    ...results.map(r => r.save)
+  ]);*/
+
+  // Save once more for good measure
+  await db_eval.save();
+  return db_eval;
+}
+/** Creates a DB record for the given profile, but with all run-specific information stripped.
+ * Use this for the first-time intake of a given profile
+ */
+export async function intake_exec_profile_no_results(
+  profile: schemas_1_0.ExecJSON.Profile
+): Promise<Profile> {
+  // Initialize our profile with top level fields
+  const db_profile = await Profile.create({
+    name: profile.name,
+    sha256: profile.sha256,
+    copyright: profile.copyright || undefined,
+    copyright_email: profile.copyright_email || undefined,
+    description: profile.description || undefined,
+    license: profile.license || undefined,
+    maintainer: profile.maintainer || undefined,
+    summary: profile.summary || undefined,
+    title: profile.title || undefined,
+    version: profile.version || undefined
+    // inspec_version: null, // TODO: We should track this in Evaluation platform
+    // status: profile.status || undefined, // TODO: Ditto above, esp. because this can change on a per-execution basis
+    // parent_profile: null, // TODO: We should track this, and probably also track overlays in a separate record table
+    // skip_message: null, // TODO: Should eventually be moved to a separate record, on candidate key (Evaluation, Overlay)
   });
-  await db_evaluation.$set("waiver_data", waiver_data);
-  await db_evaluation.save();
-  await db_evaluation.$set("inputs", inputs);
-  await db_evaluation.save();
-  await db_evaluation.$set("results", results);
-  await db_evaluation.save();
-  await db_evaluation.$set("profiles", profiles);
-  await db_evaluation.save();
-  return db_evaluation;
+
+  // Convert the controls, etc.
+  await Promise.all(
+    profile.controls.map(c => intake_exec_control_no_results(c, db_profile))
+  );
+  await Promise.all(profile.groups.map(g => intake_group(g, db_profile)));
+  await Promise.all(profile.supports.map(g => intake_support(g, db_profile)));
+  if (profile.depends) {
+    await Promise.all(
+      profile.depends.map(g => intake_dependency(g, db_profile))
+    );
+  }
+
+  await db_profile.save();
+  return db_profile;
+}
+
+/** Creates a DB record for the given control.
+ * This does NOT include results!
+ */
+export async function intake_exec_control_no_results(
+  control: schemas_1_0.ExecJSON.Control,
+  for_profile: Profile
+): Promise<Control> {
+  // Init top level fields
+  const db_control = await Control.create({
+    control_id: control.id,
+    impact: control.impact,
+    source_location: control.source_location,
+    code: control.code,
+    desc: control.desc,
+    title: control.title,
+    profile_id: for_profile.id
+  });
+
+  // Convert our subfields
+  await Promise.all(control.refs.map(r => intake_ref(r, db_control)));
+  await intake_control_tags(control.tags, db_control);
+  if (control.descriptions) {
+    await Promise.all(
+      control.descriptions.map(cd => intake_description(cd, db_control))
+    );
+  }
+
+  await db_control.save();
+  return db_control;
+}
+
+/** Creates a DB record for the given control tag.
+ */
+export async function intake_control_tags(
+  tags: schemas_1_0.ExecJSON.Control["tags"],
+  for_control: Control
+): Promise<Tag[]> {
+  const result: Tag[] = [];
+  for (const key in tags) {
+    result.push(
+      await Tag.create({
+        name: key,
+        value: tags[key],
+        tagger_type: "control",
+        tagger_id: for_control.id
+      })
+    );
+  }
+  return result;
+}
+
+/** Creates a DB record for the given dependency.
+ * Does not save.
+ */
+export async function intake_dependency(
+  dep: schemas_1_0.ExecJSON.ProfileDependency,
+  for_profile: Profile
+): Promise<Depend> {
+  return Depend.build({
+    name: dep.name,
+    path: dep.path,
+    url: dep.url,
+    status: dep.status,
+    git: dep.git,
+    branch: dep.branch,
+    profile_id: for_profile.id
+    // compliance: dep.compliance, // TODO: Add compliance
+    // supermarket: dep.supermarket, // TODO: Add supermarket
+  });
+}
+
+/** Creates a DB record for the given descripion
+ * Does not save.
+ */
+export async function intake_description(
+  desc: schemas_1_0.ExecJSON.ControlDescription,
+  for_control: Control
+): Promise<Description> {
+  return Description.build({
+    label: desc.label,
+    data: desc.data,
+    control_id: for_control.id
+  });
+}
+
+/** Creates a DB record for the given Finding.
+ * Since findings aren't actually in the schema usually, we generate one here
+ * Does not save.
+ */
+export async function intake_finding_for(
+  evaluation: parse.AnyExec,
+  for_evaluation: Evaluation
+): Promise<Finding> {
+  // Initialize our counts
+  const counts = {
+    passed: 0,
+    failed: 0,
+    not_reviewed: 0,
+    not_applicable: 0,
+    profile_error: 0
+  };
+
+  // Count each control ----- we'll get to this later, haha.
+  console.warn("Findings are not yet properly counted");
+  return Finding.build({ ...counts, evaluation_id: for_evaluation });
+}
+
+/** Creates a DB record for the given group.
+ */
+export async function intake_group(
+  group: schemas_1_0.ExecJSON.ControlGroup,
+  for_profile: Profile
+): Promise<Group> {
+  return Group.create({
+    control_id: group.id,
+    controls: group.controls,
+    title: group.title,
+    profile_id: for_profile.id
+  });
+}
+
+/** Given a profile, uploads its inputs and returns their DB model references.
+ */
+export async function intake_inputs_from(
+  p: schemas_1_0.ExecJSON.Profile,
+  for_profile: Profile
+): Promise<Input[]> {
+  console.warn("Inputs not yet properly supported");
+  const result: Input[] = [];
+  for (const attribute of p.attributes) {
+    const rv = await Input.create({
+      name: attribute["name"],
+      value: attribute["value"],
+      profile_id: for_profile.id
+    });
+    result.push(rv);
+  }
+  return result;
+}
+
+/** Creates a DB record for the given platform.
+ */
+export async function intake_platform(
+  platform: schemas_1_0.ExecJSON.Platform,
+  for_evaluation: Evaluation
+): Promise<Platform> {
+  return Platform.create({
+    name: platform.name,
+    release: platform.release,
+    evaluation_id: for_evaluation.id
+  });
+}
+
+/** Creates a DB record for the given ref.
+ */
+export async function intake_ref(
+  ref: schemas_1_0.ExecJSON.Reference,
+  for_control: Control
+): Promise<Ref> {
+  // Really just gotta remove nulls, because for some reason those are not accepted by the schema
+  return Ref.create({
+    ref: JSON.stringify(ref.ref) || undefined,
+    url: ref.url || undefined,
+    uri: ref.uri || undefined,
+    control_id: for_control.id
+  });
+}
+
+/** Creates a DB record for the given result.
+ * Does not save.
+ */
+export async function intake_result(
+  r: schemas_1_0.ExecJSON.ControlResult,
+  for_control: Control,
+  for_evaluation: Evaluation
+): Promise<Result> {
+  // Parse the date if possible
+  const date = new Date(r.start_time);
+
+  return Result.create({
+    backtrace: r.backtrace,
+    code_desc: r.code_desc,
+    exception: r.exception,
+    message: r.message,
+    resource: r.resource,
+    run_time: r.run_time,
+    skip_message: r.skip_message,
+    start_time: date,
+    status: r.status,
+    control_id: for_control.id,
+    evaluation_id: for_evaluation.id
+  });
+}
+
+/** Creates a DB record for the given statistic.
+ * Does not save.
+ */
+export async function intake_statistics(
+  statistics: schemas_1_0.ExecJSON.Statistics,
+  for_evaluation: Evaluation
+): Promise<Statistic> {
+  return Statistic.create({
+    duration: `${statistics.duration}`,
+    evaluation_id: for_evaluation.id
+  });
+}
+
+/** Creates a DB record for the given support.
+ * Does not save.
+ */
+export async function intake_support(
+  support: schemas_1_0.ExecJSON.SupportedPlatform,
+  for_profile: Profile
+): Promise<Support> {
+  return Support.create({
+    os_name: support["os-name"],
+    os_family: support["os-family"],
+    platform: support.platform,
+    platform_family: support["platform-family"],
+    platform_name: support["platform-name"],
+    release: support["release"],
+    profile_id: for_profile.id
+    // inspec_version: support["???"]
+  });
+}
+
+/** Creates a DB record for the given waiver data.
+ */
+export async function intake_waiver_data(
+  c: schemas_1_0.ExecJSON.ControlWaiverData,
+  for_control: Control,
+  for_evaluation: Evaluation
+): Promise<WaiverDatum> {
+  return WaiverDatum.create({
+    justification: c.justification,
+    run: c.run,
+    skipped_due_to_waiver: c.skipped_due_to_waiver ? true : false,
+    message: c.message,
+    control_id: for_control.id,
+    evaluation_id: for_evaluation.id
+  });
 }
 
 /** Given a raw profile, attempts to fetch an already existing DB entry for that profile.
@@ -114,271 +413,12 @@ export async function fetch_or_create(
   }).then(found => {
     if (found) {
       console.log(`Found profile ${found.name}`);
-      return found;
+      // return found;
+      return intake_exec_profile_no_results(profile);
     } else {
       // Otherwise build
       console.log(`Building a new profile for ${profile.name}`);
       return intake_exec_profile_no_results(profile);
     }
-  });
-}
-
-/** Creates a DB record for the given platform.
- * Does not save.
- */
-export async function intake_platform(
-  platform: schemas_1_0.ExecJSON.Platform
-): Promise<Platform> {
-  return Platform.build({
-    name: platform.name,
-    release: platform.release
-  });
-}
-
-/** Creates a DB record for the given statistic.
- * Does not save.
- */
-export async function intake_statistics(
-  statistics: schemas_1_0.ExecJSON.Statistics
-): Promise<Statistic> {
-  return Statistic.build({
-    duration: `${statistics.duration}`
-  });
-}
-
-/** Creates a DB record for the given profile, but with all run-specific information stripped.
- * Use this for the first-time intake of a given profile
- * DOES save!
- */
-export async function intake_exec_profile_no_results(
-  profile: schemas_1_0.ExecJSON.Profile
-): Promise<Profile> {
-  // Convert the controls, etc.
-  const controls = await Promise.all(
-    profile.controls.map(intake_exec_control_no_results)
-  );
-  const groups = await Promise.all(profile.groups.map(intake_group));
-  const supports = await Promise.all(profile.supports.map(intake_support));
-  const depends = await Promise.all(
-    profile.depends?.map(intake_dependency) || []
-  );
-
-  return Profile.create({
-    name: profile.name,
-    sha256: profile.sha256,
-    copyright: profile.copyright || undefined,
-    copyright_email: profile.copyright_email || undefined,
-    description: profile.description || undefined,
-    // inspec_version: null, // TODO: We should track this
-    license: profile.license || undefined,
-    maintainer: profile.maintainer || undefined,
-    // parent_profile: null, // TODO: We should track this, and probably also track overlays in a separate record table
-    // skip_message: null, // TODO: Should eventually be moved to a separate record, on candidate key (Evaluation, Overlay)
-    status: profile.status || undefined, // TODO: Ditto above, esp. because this can change on a per-execution basis
-    summary: profile.summary || undefined,
-    title: profile.title || undefined,
-    version: profile.version || undefined,
-    controls,
-    depends: depends,
-    supports: supports,
-    groups: groups
-    // inputs: [] // Initally empty
-  });
-}
-
-/** Creates a DB record for the given group.
- * Does not save.
- */
-export async function intake_group(
-  group: schemas_1_0.ExecJSON.ControlGroup
-): Promise<Group> {
-  return Group.build({
-    control_id: group.id,
-    controls: group.controls,
-    title: group.title
-  });
-}
-
-/** Creates a DB record for the given support.
- * Does not save.
- */
-export async function intake_support(
-  support: schemas_1_0.ExecJSON.SupportedPlatform
-): Promise<Support> {
-  console.error("Error parsing support;");
-  const ft = (key: keyof schemas_1_0.ExecJSON.SupportedPlatform): string =>
-    support[key] || "";
-  const name =
-    ft("platform-family") +
-    ft("os-family") +
-    ft("platform-name") +
-    ft("os-name") +
-    ft("platform");
-  const version = support.release || "";
-  return Support.build({
-    name: name,
-    value: version
-  });
-}
-
-/** Creates a DB record for the given control.
- * This does NOT include results!
- * Does not save.
- */
-export async function intake_exec_control_no_results(
-  control: schemas_1_0.ExecJSON.Control
-): Promise<Control> {
-  // Convert our subfields
-  const refs = await Promise.all(control.refs.map(intake_ref));
-  const tags = await intake_control_tags(control.tags);
-  const descriptions = control.descriptions
-    ? await Promise.all(control.descriptions.map(intake_description))
-    : [];
-
-  // Reformatting
-  return Control.build({
-    control_id: control.id,
-    impact: control.impact,
-    refs: refs,
-    source_location: control.source_location,
-    tags: tags,
-    code: control.code,
-    desc: control.desc,
-    descriptions: descriptions,
-    title: control.title,
-    waiver_data: [], // Begin empty
-    results: [] // Begin empty
-  });
-}
-
-/** Creates a DB record for the given ref.
- * Does not save.
- */
-export async function intake_ref(
-  ref: schemas_1_0.ExecJSON.Reference
-): Promise<Ref> {
-  // Really just gotta remove nulls, because for some reason those are not accepted by the schema
-  return Ref.build({
-    ref: ref.ref || undefined,
-    url: ref.url || undefined,
-    uri: ref.uri || undefined
-  });
-}
-
-/** Creates a DB record for the given dependency.
- * Does not save.
- */
-export async function intake_dependency(
-  dep: schemas_1_0.ExecJSON.ProfileDependency
-): Promise<Depend> {
-  return Depend.build({
-    name: dep.name,
-    path: dep.path,
-    url: dep.url,
-    status: dep.status,
-    git: dep.git,
-    branch: dep.branch
-    // compliance: dep.compliance, // TODO: Add compliance
-    // supermarket: dep.supermarket, // TODO: Add supermarket
-  });
-}
-
-/** Creates a DB record for the given descripion
- * Does not save.
- */
-export async function intake_description(
-  desc: schemas_1_0.ExecJSON.ControlDescription
-): Promise<Description> {
-  return Description.build({ label: desc.label, data: desc.data });
-}
-
-/** Creates a DB record for the given control tag.
- * Does not save.
- */
-export async function intake_control_tags(
-  tags: schemas_1_0.ExecJSON.Control["tags"]
-): Promise<Tag[]> {
-  const result: Tag[] = [];
-  for (const key in tags) {
-    result.push(
-      await Tag.build({
-        name: key,
-        value: tags[key]
-      })
-    );
-  }
-  return result;
-}
-
-/** Creates a DB record for the given result.
- * Does not save.
- */
-export async function intake_result(
-  r: schemas_1_0.ExecJSON.ControlResult
-): Promise<Result> {
-  // Parse the date if possible
-  const date = new Date(r.start_time);
-
-  return Result.build({
-    backtrace: r.backtrace,
-    code_desc: r.code_desc,
-    exception: r.exception,
-    message: r.message,
-    resource: r.resource,
-    run_time: r.run_time,
-    skip_message: r.skip_message,
-    start_time: date,
-    status: r.status
-  });
-}
-
-/** Given a profile, uploads its inputs and returns their DB model references.
- * Does not save
- */
-export async function intake_inputs_from(
-  p: schemas_1_0.ExecJSON.Profile
-): Promise<Input[]> {
-  console.warn("Inputs not yet properly supported");
-  const result: Input[] = [];
-  for (const attribute of p.attributes) {
-    const rv = await Input.build({
-      name: attribute["name"],
-      value: attribute["value"]
-    });
-    result.push(rv);
-  }
-  return result;
-}
-
-/** Creates a DB record for the given Finding.
- * Since findings aren't actually in the schema usually, we generate one here
- * Does not save.
- */
-export async function intake_finding_for(e: parse.AnyExec): Promise<Finding> {
-  // Initialize our counts
-  const counts = {
-    passed: 0,
-    failed: 0,
-    not_reviewed: 0,
-    not_applicable: 0,
-    profile_error: 0
-  };
-
-  // Count each control ----- we'll get to this later, haha.
-  console.warn("Findings are not yet properly counted");
-  return Finding.build({ ...counts });
-}
-
-/** Creates a DB record for the given waiver data.
- * Does not save.
- */
-export async function intake_waiver_data(
-  c: schemas_1_0.ExecJSON.ControlWaiverData
-): Promise<WaiverDatum> {
-  return WaiverDatum.build({
-    justification: c.justification,
-    run: c.run,
-    skipped_due_to_waiver: c.skipped_due_to_waiver ? true : false,
-    message: c.message
   });
 }
