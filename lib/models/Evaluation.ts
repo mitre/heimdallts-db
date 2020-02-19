@@ -18,8 +18,10 @@ import { Tag } from "./Tag";
 import { Finding } from "./Finding";
 import { WaiverDatum } from "./WaiverDatum";
 import { Result } from "./Result";
+import { Depend } from "./Depend";
 
 @Scopes(() => ({
+  short: { },
   meta: {
     include: [Statistic, Platform, Finding, Tag]
   }
@@ -46,6 +48,14 @@ export class Evaluation extends Model<Evaluation> {
     }
   })
   platform?: Platform;
+
+  @HasOne(() => Depend, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  depend?: Depend;
 
   @HasMany(() => Input, "evaluation_id")
   inputs?: Input[];

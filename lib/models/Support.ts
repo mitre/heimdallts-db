@@ -13,10 +13,25 @@ import { Profile } from "./Profile";
 })
 export class Support extends Model<Support> {
   @Column
-  name!: string;
+  os_name!: string;
 
   @Column
-  value!: string;
+  os_family!: string;
+
+  @Column
+  platform!: string;
+
+  @Column
+  platform_family!: string;
+
+  @Column
+  platform_name!: string;
+
+  @Column
+  release!: string;
+
+  @Column
+  inspec_version!: string;
 
   @BelongsTo(() => Profile, {
     foreignKey: {

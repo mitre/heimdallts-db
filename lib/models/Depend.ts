@@ -7,6 +7,7 @@ import {
   UpdatedAt
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
+import { Evaluation } from "./Evaluation";
 
 @Table({
   tableName: "depends"
@@ -38,6 +39,14 @@ export class Depend extends Model<Depend> {
     }
   })
   profile?: Profile;
+
+  @BelongsTo(() => Evaluation, {
+    foreignKey: {
+      name: "evaluation_id",
+      allowNull: false
+    }
+  })
+  evaluation?: Profile;
 
   @CreatedAt
   @Column

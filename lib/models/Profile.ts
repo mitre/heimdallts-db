@@ -15,6 +15,7 @@ import { Group } from "./Group";
 import { Depend } from "./Depend";
 import { Support } from "./Support";
 import { Control } from "./Control";
+import { DependantParent } from "./DependantParent";
 
 @Scopes(() => ({
   evaluations: { include: [Evaluation] },
@@ -77,6 +78,12 @@ export class Profile extends Model<Profile> {
     () => EvaluationProfile
   )
   evaluations?: Evaluation[];
+
+  @BelongsToMany(
+    () => Profile,
+    () => DependantParent, "dependant_id", "parent_id"
+  )
+  parents?: Profile[];
 
   @CreatedAt
   @Column

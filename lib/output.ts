@@ -143,7 +143,13 @@ export function convert_supports(
       return {
         // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
         // Rob will probably know but he was offline when I encountered this.
-        platform: s.value
+        os_family: s.os_family,
+        os_name: s.os_name,
+        platform: s.platform,
+        platform_family: s.platform_family,
+        platform_name: s.platform_name,
+        release: s.release,
+        inspec_version: s.inspec_version
       };
     });
   }
