@@ -11,6 +11,9 @@ import { Description } from "./models/Description";
 import { Tag } from "./models/Tag";
 import { Result } from "./models/Result";
 import { Op } from "sequelize";
+import { Depend } from "./models/Depend";
+import { Input } from "./models/Input";
+import { WaiverDatum } from "./models/WaiverDatum";
 
 /** A utility function which checks if the specified key is present in the object x,
  * and if not, throws an error.
@@ -36,23 +39,25 @@ export async function convert_evaluation(
 
   // Done!
   const result: schemas_1_0.ExecJSON.Execution = {
-    platform: await convert_platform(
-      (await db_eval.$get("platform")) as Platform
-    ),
-    statistics: await convert_statistics(
-      (await db_eval.$get("statistic")) as Statistic
-    ),
+    platform: await db_eval
+      .$get("platform")
+      .then(required)
+      .then(convert_platform),
+    statistics: await db_eval
+      .$get("statistic")
+      .then(required)
+      .then(convert_statistics)
+      .catchReturn({}),
     version: db_eval.version,
     profiles: converted_profiles
   };
   return result;
 }
 
-export async function convert_platform(
+export function convert_platform(
   db_platform: Platform
-): Promise<schemas_1_0.ExecJSON.Platform> {
+): schemas_1_0.ExecJSON.Platform {
   // mandate(db_platform, "target_id")
-  console.log("db_platform: " + db_platform);
   return {
     name: db_platform.name,
     release: db_platform.release,
@@ -61,18 +66,13 @@ export async function convert_platform(
 }
 
 // Since we store duration as string but inspecjs expects a number (which should maybe be reconsidered...?), need this
-export async function convert_statistics(
+export function convert_statistics(
   db_statistics: Statistic
-): Promise<schemas_1_0.ExecJSON.Statistics> {
+): schemas_1_0.ExecJSON.Statistics {
   mandate(db_statistics, "duration");
-  // There's nothing else!
-  console.log("db_statistics.duration: " + db_statistics.duration);
-  let dur: number | null = Number.parseFloat(db_statistics.duration);
-  if (Number.isNaN(dur)) {
-    dur = null;
-  }
+  const dur: number = Number.parseFloat(db_statistics.duration);
   return {
-    duration: dur
+    duration: Number.isNaN(dur) ? null : dur
   };
 }
 
@@ -80,11 +80,6 @@ export async function convert_exec_profile(
   db_profile: Profile,
   db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Profile> {
-  // Mandate
-  mandate(db_profile, "name");
-  mandate(db_profile, "sha256");
-
-  console.log("profile: " + db_profile.name);
   // Convert the controls
   const raw_controls = await db_profile.$get("controls");
   const controls: schemas_1_0.ExecJSON.Control[] = [];
@@ -92,18 +87,24 @@ export async function convert_exec_profile(
     controls.push(await convert_exec_control(c, db_eval));
   }
 
+  // Get the attributes
+  const raw_attributes = await db_profile.$get("inputs", {
+    where: {
+      evaluation_id: db_eval.id
+    }
+  });
+  const attributes = convert_inputs(raw_attributes);
+
   return {
-    attributes: [], // TODO: These aren't in the DB in proper place?!?! db_profile.
+    attributes: attributes,
     groups: convert_groups(await db_profile.$get("groups")),
     name: db_profile.name,
     sha256: db_profile.sha256,
-    supports: convert_supports(
-      (await db_profile.$get("supports")) as Support[]
-    ),
+    supports: convert_supports(await db_profile.$get("supports")),
     copyright: db_profile.copyright,
     copyright_email: db_profile.copyright_email,
     depends: db_profile.depends,
-    description: null, // db_profile.desc,
+    description: db_profile.description, // db_profile.desc,
     inspec_version: null, // TODO: We should track this
     license: db_profile.license,
     maintainer: db_profile.maintainer,
@@ -163,21 +164,25 @@ export async function convert_exec_control(
   mandate(db_control, "id");
   mandate(db_control, "impact");
 
-  // We handle this differently based on if eval id defined
-  //mandate(db_control, "source_location");
-
-  console.log("control: " + db_control.control_id);
-  // Fetch our results, properly
-  // TODO: Make this a more efficient operation.
-  const results_list = await db_control.$get("results", {
+  // Get the results for this control
+  const db_results = await db_control.$get("results", {
     where: {
       evaluation_id: {
         [Op.eq]: db_eval.id
       }
     }
   });
-  const results = convert_results(results_list);
-  //let results: schemas_1_0.ExecJSON.Control["results"] = [];
+  const results = convert_results(db_results);
+
+  // Get the waiver data for this control
+  const db_waivers = await db_control.$get("waiver_data", {
+    where: {
+      evaluation_id: {
+        [Op.eq]: db_eval.id
+      }
+    }
+  });
+  const waiver = db_waivers.length ? convert_waiver(db_waivers[0]) : null;
 
   // Reformatting
   return {
@@ -190,7 +195,7 @@ export async function convert_exec_control(
     desc: db_control.desc,
     descriptions: convert_descriptions(await db_control.$get("descriptions")),
     title: db_control.title,
-    //waiver_data: convert_waiver(db_control.waiver_data), // TODO: This REALLY shoudn't be coming from here
+    waiver_data: waiver, // TODO: This REALLY shoudn't be coming from here
     results
   };
 }
@@ -250,4 +255,45 @@ export function convert_results(
       status: r.status as schemas_1_0.ExecJSON.ControlResultStatus
     };
   });
+}
+
+export function convert_dependency(
+  dep: Depend
+): schemas_1_0.ExecJSON.ProfileDependency {
+  return new Depend({
+    name: dep.name,
+    path: dep.path,
+    url: dep.url,
+    status: dep.status,
+    git: dep.git,
+    branch: dep.branch
+    // compliance: dep.compliance, // TODO: Add compliance
+    // supermarket: dep.supermarket, // TODO: Add supermarket
+  });
+}
+
+export function convert_inputs(
+  i: Input[]
+): schemas_1_0.ExecJSON.Profile["attributes"] {
+  console.warn("Inputs not yet properly supported");
+  return i;
+}
+
+export function convert_waiver(
+  c: WaiverDatum
+): schemas_1_0.ExecJSON.ControlWaiverData {
+  return {
+    justification: c.justification,
+    run: c.run,
+    skipped_due_to_waiver: c.skipped_due_to_waiver ? "skipped" : undefined,
+    message: c.message
+  };
+}
+
+export class RequiredException extends Error {}
+export async function required<T>(v: T | undefined | null): Promise<T> {
+  if (v === undefined || v === null) {
+    throw new RequiredException();
+  }
+  return v;
 }

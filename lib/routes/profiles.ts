@@ -8,7 +8,7 @@ profiles.get("", async (req, res, next) => {
   try {
     res.json(await Profile.scope(req.query["scope"]).findAll());
   } catch (e) {
-    console.log("error " + e);
+    console.error("error " + e);
     next(e);
   }
 });
@@ -19,13 +19,9 @@ profiles.get("/:id", async (req, res, next) => {
     const profile = await Profile.scope(req.query["scope"]).findByPk(
       req.params["id"]
     );
-    console.log(profile);
-    const profile_obj = profile ? await convert_exec_profile(profile) : null;
-    const JSON_string = profile_obj ? JSON.stringify(profile_obj) : "";
-    console.log("JSON_string: " + JSON_string);
     res.json(profile);
   } catch (e) {
-    console.log("error " + e);
+    console.error("error " + e);
     next(e);
   }
 });

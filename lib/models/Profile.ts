@@ -32,28 +32,31 @@ export class Profile extends Model<Profile> {
   name!: string;
 
   @Column
-  title!: string;
+  title?: string;
 
   @Column
-  maintainer!: string;
+  maintainer?: string;
 
   @Column
-  copyright!: string;
+  copyright?: string;
 
   @Column
-  copyright_email!: string;
+  copyright_email?: string;
 
   @Column
-  license!: string;
+  license?: string;
 
   @Column
-  summary!: string;
+  summary?: string;
 
   @Column
-  version!: string;
+  description?: string;
 
   @Column
-  status!: string;
+  version?: string;
+
+  @Column
+  status?: string;
 
   @Column
   sha256!: string;
