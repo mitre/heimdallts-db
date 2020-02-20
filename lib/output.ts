@@ -14,6 +14,8 @@ import { Op } from "sequelize";
 import { Depend } from "./models/Depend";
 import { Input } from "./models/Input";
 import { WaiverDatum } from "./models/WaiverDatum";
+import { controls } from "./routes/controls";
+import { SourceLocation } from "./models/SourceLocation";
 
 /** A utility function which checks if the specified key is present in the object x,
  * and if not, throws an error.
@@ -34,7 +36,7 @@ export async function convert_evaluation(
   const raw_profiles = await db_eval.$get("profiles");
   const converted_profiles: schemas_1_0.ExecJSON.Profile[] = [];
   for (const p of raw_profiles) {
-    converted_profiles.push(await convert_exec_profile(p, db_eval.id));
+    converted_profiles.push(await convert_exec_profile(p, db_eval));
   }
 
   // Done!
@@ -176,12 +178,18 @@ export async function convert_exec_control(
   });
   const waiver = db_waivers.length ? convert_waiver(db_waivers[0]) : null;
 
+  // Pluck the bits from the source_location
+
   // Reformatting
   return {
     id: db_control.control_id,
     impact: db_control.impact,
     refs: convert_refs(await db_control.$get("refs")),
-    source_location: db_control.source_location,
+    source_location: await db_control
+      .$get("source_location")
+      .then(required)
+      .then(convert_source_location)
+      .catchReturn({}),
     tags: convert_control_tags(await db_control.$get("tags")),
     code: db_control.code,
     desc: db_control.desc,
@@ -269,6 +277,14 @@ export function convert_inputs(
 ): schemas_1_0.ExecJSON.Profile["attributes"] {
   console.warn("Inputs not yet properly supported");
   return i;
+}
+
+export function convert_source_location(
+  sl: SourceLocation
+): schemas_1_0.ExecJSON.SourceLocation {
+  const line = sl.line;
+  const ref = sl.ref;
+  return { line, ref };
 }
 
 export function convert_waiver(

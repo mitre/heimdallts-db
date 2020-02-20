@@ -27,10 +27,10 @@ import { Result } from "./Result";
   tableName: "controls"
 })
 export class Control extends Model<Control> {
-  @Column
+  @Column(DataType.TEXT)
   title!: string;
 
-  @Column
+  @Column(DataType.TEXT)
   desc!: string;
 
   @Column(DataType.FLOAT)

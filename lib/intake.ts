@@ -14,6 +14,7 @@ import { Depend } from "./models/Depend";
 import { Input } from "./models/Input";
 import { Finding } from "./models/Finding";
 import { WaiverDatum } from "./models/WaiverDatum";
+import { SourceLocation } from "./models/SourceLocation";
 
 /* TODO: Integrate transactions */
 
@@ -31,14 +32,9 @@ export async function intake_evaluation(
   const finding = await intake_finding_for(evaluation, db_eval);
 
   // Link them up
-  // await db_eval.$set("platform", platform);
-  // await db_eval.$set("statistic", statistic);
-  // await db_eval.$set("finding", finding);
-
-  // Init lists for the rest
-  const inputs: Input[] = [];
-  const results: Result[] = [];
-  const waiver_data: WaiverDatum[] = [];
+  await db_eval.$set("platform", platform);
+  await db_eval.$set("statistic", statistic);
+  await db_eval.$set("finding", finding);
 
   // Convert the profiles
   const raw_profiles = evaluation.profiles;
@@ -49,15 +45,14 @@ export async function intake_evaluation(
     const db_profile = await fetch_or_create(raw_profile);
 
     // Establish relation to the evaluation
-    //console.log(35);
     await db_eval.$add("profiles", db_profile);
 
     // Handle inputs
-    for (const i of await intake_inputs_from(raw_profile, db_profile)) {
-      await i.$set("profile", db_profile);
-      await i.$set("evaluation", db_eval);
-      await i.save();
-      inputs.push(i);
+    await intake_inputs_from(raw_profile, db_profile, db_eval);
+
+    // Handle depends
+    if (raw_profile.depends) {
+      await intake_dependencies(raw_profile.depends, db_profile, db_eval);
     }
 
     // Build out a mapping of the db controls by their ids
@@ -72,41 +67,15 @@ export async function intake_evaluation(
 
       // Get the waiver data, and handle linking it
       if (raw_control.waiver_data) {
-        const wd = await intake_waiver_data(
-          raw_control.waiver_data,
-          db_control,
-          db_eval
-        );
-        await wd.$set("control", db_control);
-        await wd.$set("evaluation", db_eval);
-        await wd.save();
-        waiver_data.push(wd);
+        await intake_waiver_data(raw_control.waiver_data, db_control, db_eval);
       }
 
       // Process each result and link it
-      for (const result of raw_control.results) {
-        const res = await intake_result(result, db_control, db_eval);
-        // await res.$set("control", db_control);
-        // await res.$set("evaluation", db_eval);
-        // await res.save();
-        await db_eval.$add("results", res);
-        // await db_control.$add("results", res);
-        await res.save();
-        results.push(res);
-      }
+      await intake_results(raw_control.results, db_control, db_eval);
     }
 
     await db_profile.save();
   }
-
-  // Now save all multiplicity-children
-  // await Promise.all(db_eval.$set("inputs", inputs), db_eval.$set("con"));
-  /*
-  await Promise.all([
-    ...waiver_data.map(wd => wd.save),
-    ...inputs.map(i => i.save),
-    ...results.map(r => r.save)
-  ]);*/
 
   // Save once more for good measure
   await db_eval.save();
@@ -137,16 +106,11 @@ export async function intake_exec_profile_no_results(
   });
 
   // Convert the controls, etc.
-  await Promise.all(
-    profile.controls.map(c => intake_exec_control_no_results(c, db_profile))
-  );
-  await Promise.all(profile.groups.map(g => intake_group(g, db_profile)));
-  await Promise.all(profile.supports.map(g => intake_support(g, db_profile)));
-  if (profile.depends) {
-    await Promise.all(
-      profile.depends.map(g => intake_dependency(g, db_profile))
-    );
+  for (const c of profile.controls) {
+    await intake_exec_control_no_results(c, db_profile);
   }
+  await intake_groups(profile.groups, db_profile);
+  await intake_supports(profile.supports, db_profile);
 
   await db_profile.save();
   return db_profile;
@@ -163,20 +127,26 @@ export async function intake_exec_control_no_results(
   const db_control = await Control.create({
     control_id: control.id,
     impact: control.impact,
-    source_location: control.source_location,
     code: control.code,
     desc: control.desc,
     title: control.title,
     profile_id: for_profile.id
   });
 
-  // Convert our subfields
-  await Promise.all(control.refs.map(r => intake_ref(r, db_control)));
+  // Convert our singular subfields
+  const source_location = await intake_source_location(
+    control.source_location,
+    db_control
+  );
+  await db_control.$set("source_location", source_location);
+
+  // Convert our multiple subfields
+  for (const r of control.refs) {
+    await intake_ref(r, db_control);
+  }
   await intake_control_tags(control.tags, db_control);
   if (control.descriptions) {
-    await Promise.all(
-      control.descriptions.map(cd => intake_description(cd, db_control))
-    );
+    await intake_descriptions(control.descriptions, db_control);
   }
 
   await db_control.save();
@@ -189,52 +159,53 @@ export async function intake_control_tags(
   tags: schemas_1_0.ExecJSON.Control["tags"],
   for_control: Control
 ): Promise<Tag[]> {
-  const result: Tag[] = [];
-  for (const key in tags) {
-    result.push(
-      await Tag.create({
-        name: key,
-        value: tags[key],
-        tagger_type: "control",
-        tagger_id: for_control.id
-      })
-    );
-  }
-  return result;
+  return Tag.bulkCreate(
+    Object.keys(tags).map(key => ({
+      name: key,
+      value: tags[key],
+      tagger_type: "control",
+      tagger_id: for_control.id
+    }))
+  );
 }
 
 /** Creates a DB record for the given dependency.
- * Does not save.
  */
-export async function intake_dependency(
-  dep: schemas_1_0.ExecJSON.ProfileDependency,
-  for_profile: Profile
-): Promise<Depend> {
-  return Depend.build({
-    name: dep.name,
-    path: dep.path,
-    url: dep.url,
-    status: dep.status,
-    git: dep.git,
-    branch: dep.branch,
-    profile_id: for_profile.id
-    // compliance: dep.compliance, // TODO: Add compliance
-    // supermarket: dep.supermarket, // TODO: Add supermarket
-  });
+export async function intake_dependencies(
+  dependencies: schemas_1_0.ExecJSON.ProfileDependency[],
+  for_profile: Profile,
+  for_evaluation: Evaluation
+): Promise<Depend[]> {
+  return Depend.bulkCreate(
+    dependencies.map(dep => ({
+      name: dep.name,
+      path: dep.path,
+      url: dep.url,
+      status: dep.status,
+      git: dep.git,
+      branch: dep.branch,
+      profile_id: for_profile.id,
+      evaluation_id: for_evaluation.id
+      // compliance: dep.compliance, // TODO: Add compliance
+      // supermarket: dep.supermarket, // TODO: Add supermarket
+    }))
+  );
 }
 
 /** Creates a DB record for the given descripion
  * Does not save.
  */
-export async function intake_description(
-  desc: schemas_1_0.ExecJSON.ControlDescription,
+export async function intake_descriptions(
+  descriptions: schemas_1_0.ExecJSON.ControlDescription[],
   for_control: Control
-): Promise<Description> {
-  return Description.build({
-    label: desc.label,
-    data: desc.data,
-    control_id: for_control.id
-  });
+): Promise<Description[]> {
+  return Description.bulkCreate(
+    descriptions.map(desc => ({
+      label: desc.label,
+      data: desc.data,
+      control_id: for_control.id
+    }))
+  );
 }
 
 /** Creates a DB record for the given Finding.
@@ -256,40 +227,40 @@ export async function intake_finding_for(
 
   // Count each control ----- we'll get to this later, haha.
   console.warn("Findings are not yet properly counted");
-  return Finding.build({ ...counts, evaluation_id: for_evaluation });
+  return Finding.create({ ...counts, evaluation_id: for_evaluation.id });
 }
 
 /** Creates a DB record for the given group.
  */
-export async function intake_group(
-  group: schemas_1_0.ExecJSON.ControlGroup,
+export async function intake_groups(
+  groups: schemas_1_0.ExecJSON.ControlGroup[],
   for_profile: Profile
-): Promise<Group> {
-  return Group.create({
-    control_id: group.id,
-    controls: group.controls,
-    title: group.title,
-    profile_id: for_profile.id
-  });
+): Promise<Group[]> {
+  return Group.bulkCreate(
+    groups.map(group => ({
+      control_id: group.id,
+      controls: group.controls,
+      title: group.title,
+      profile_id: for_profile.id
+    }))
+  );
 }
 
 /** Given a profile, uploads its inputs and returns their DB model references.
  */
 export async function intake_inputs_from(
-  p: schemas_1_0.ExecJSON.Profile,
-  for_profile: Profile
+  raw_profile: schemas_1_0.ExecJSON.Profile,
+  for_profile: Profile,
+  for_evaluation: Evaluation
 ): Promise<Input[]> {
-  console.warn("Inputs not yet properly supported");
-  const result: Input[] = [];
-  for (const attribute of p.attributes) {
-    const rv = await Input.create({
+  return Input.bulkCreate(
+    raw_profile.attributes.map(attribute => ({
       name: attribute["name"],
-      value: attribute["value"],
-      profile_id: for_profile.id
-    });
-    result.push(rv);
-  }
-  return result;
+      options: attribute["options"],
+      profile_id: for_profile.id,
+      evaluation_id: for_evaluation.id
+    }))
+  );
 }
 
 /** Creates a DB record for the given platform.
@@ -321,28 +292,39 @@ export async function intake_ref(
 }
 
 /** Creates a DB record for the given result.
- * Does not save.
  */
-export async function intake_result(
-  r: schemas_1_0.ExecJSON.ControlResult,
+export async function intake_results(
+  results: schemas_1_0.ExecJSON.ControlResult[],
   for_control: Control,
   for_evaluation: Evaluation
-): Promise<Result> {
-  // Parse the date if possible
-  const date = new Date(r.start_time);
+): Promise<Result[]> {
+  return Result.bulkCreate(
+    results.map(r => ({
+      backtrace: r.backtrace,
+      code_desc: r.code_desc,
+      exception: r.exception,
+      message: r.message,
+      resource: r.resource,
+      run_time: r.run_time,
+      skip_message: r.skip_message,
+      start_time: new Date(r.start_time),
+      status: r.status,
+      control_id: for_control.id,
+      evaluation_id: for_evaluation.id
+    }))
+  );
+}
 
-  return Result.create({
-    backtrace: r.backtrace,
-    code_desc: r.code_desc,
-    exception: r.exception,
-    message: r.message,
-    resource: r.resource,
-    run_time: r.run_time,
-    skip_message: r.skip_message,
-    start_time: date,
-    status: r.status,
-    control_id: for_control.id,
-    evaluation_id: for_evaluation.id
+/** Creates a DB record for the given source location.
+ */
+export async function intake_source_location(
+  sl: schemas_1_0.ExecJSON.SourceLocation,
+  for_control: Control
+): Promise<SourceLocation> {
+  return SourceLocation.create({
+    line: sl.line,
+    ref: sl.ref,
+    control_id: for_control.id
   });
 }
 
@@ -362,34 +344,36 @@ export async function intake_statistics(
 /** Creates a DB record for the given support.
  * Does not save.
  */
-export async function intake_support(
-  support: schemas_1_0.ExecJSON.SupportedPlatform,
+export async function intake_supports(
+  supports: schemas_1_0.ExecJSON.SupportedPlatform[],
   for_profile: Profile
-): Promise<Support> {
-  return Support.create({
-    os_name: support["os-name"],
-    os_family: support["os-family"],
-    platform: support.platform,
-    platform_family: support["platform-family"],
-    platform_name: support["platform-name"],
-    release: support["release"],
-    profile_id: for_profile.id
-    // inspec_version: support["???"]
-  });
+): Promise<Support[]> {
+  return Support.bulkCreate(
+    supports.map(support => ({
+      os_name: support["os-name"],
+      os_family: support["os-family"],
+      platform: support.platform,
+      platform_family: support["platform-family"],
+      platform_name: support["platform-name"],
+      release: support["release"],
+      profile_id: for_profile.id
+      // inspec_version: support["???"]
+    }))
+  );
 }
 
 /** Creates a DB record for the given waiver data.
  */
 export async function intake_waiver_data(
-  c: schemas_1_0.ExecJSON.ControlWaiverData,
+  wd: schemas_1_0.ExecJSON.ControlWaiverData,
   for_control: Control,
   for_evaluation: Evaluation
 ): Promise<WaiverDatum> {
   return WaiverDatum.create({
-    justification: c.justification,
-    run: c.run,
-    skipped_due_to_waiver: c.skipped_due_to_waiver ? true : false,
-    message: c.message,
+    justification: wd.justification,
+    run: wd.run,
+    skipped_due_to_waiver: wd.skipped_due_to_waiver ? true : false,
+    message: wd.message,
     control_id: for_control.id,
     evaluation_id: for_evaluation.id
   });
@@ -412,9 +396,7 @@ export async function fetch_or_create(
     }
   }).then(found => {
     if (found) {
-      console.log(`Found profile ${found.name}`);
-      // return found;
-      return intake_exec_profile_no_results(profile);
+      return found;
     } else {
       // Otherwise build
       console.log(`Building a new profile for ${profile.name}`);
