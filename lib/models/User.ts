@@ -42,7 +42,7 @@ export class User extends Model<User> {
   @Column(DataType.STRING)
   phoneNumber?: string | null;
 
-  /** The login(s) th */
+  /** The login(s) that we host locally to provide access to this account */
   @HasMany(() => AuthUserPass, "user_id")
   authUserPass?: AuthUserPass[];
 
