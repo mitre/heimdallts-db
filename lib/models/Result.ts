@@ -41,7 +41,7 @@ export class Result extends Model<Result> {
 
   @AllowNull(true)
   @Column(DataType.ARRAY(DataType.STRING))
-  backtrace: string[] | null = null;
+  backtrace!: string[] | null;
 
   @BelongsTo(() => Control, {
     foreignKey: {

@@ -16,7 +16,7 @@ export class Statistic extends Model<Statistic> {
   duration!: string;
 
   @BelongsTo(() => Evaluation, "evaluation_id")
-  evaluation?: Evaluation | null = null;
+  evaluation?: Evaluation | null;
 
   @CreatedAt
   @Column
