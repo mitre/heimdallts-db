@@ -106,7 +106,7 @@ export async function convert_exec_profile(
     copyright: db_profile.copyright,
     copyright_email: db_profile.copyright_email,
     depends: db_profile.depends,
-    description: db_profile.description, // db_profile.desc,
+    //description: db_profile.description, // db_profile.desc,
     inspec_version: null, // TODO: We should track this
     license: db_profile.license,
     maintainer: db_profile.maintainer,

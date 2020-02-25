@@ -93,7 +93,7 @@ export async function intake_exec_profile_no_results(
     sha256: profile.sha256,
     copyright: profile.copyright || undefined,
     copyright_email: profile.copyright_email || undefined,
-    description: profile.description || undefined,
+    //description: profile.description || undefined,
     license: profile.license || undefined,
     maintainer: profile.maintainer || undefined,
     summary: profile.summary || undefined,

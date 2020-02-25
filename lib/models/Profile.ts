@@ -49,8 +49,8 @@ export class Profile extends Model<Profile> {
   @Column
   summary?: string;
 
-  @Column
-  description?: string;
+  //@Column
+  //description?: string;
 
   @Column
   version?: string;
