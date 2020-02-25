@@ -19,7 +19,7 @@ export class SourceLocation extends Model<SourceLocation> {
   line!: number;
 
   @BelongsTo(() => Control, "control_id")
-  control?: Control | null = null;
+  control?: Control | null;
 
   @CreatedAt
   @Column

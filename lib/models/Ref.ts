@@ -22,7 +22,7 @@ export class Ref extends Model<Ref> {
   uri!: string;
 
   @BelongsTo(() => Control, "control_id")
-  control?: Control | null = null;
+  control?: Control | null;
 
   @CreatedAt
   @Column

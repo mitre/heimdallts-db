@@ -13,7 +13,11 @@ export function create_sequelize_connection(
   port: number,
   database: string,
   username: string,
-  password: string
+  password: string,
+  logging:
+    | boolean
+    | ((sql: string, timing?: number | undefined) => void)
+    | undefined = undefined
 ): Sequelize {
   return new Sequelize({
     dialect: "postgres",
@@ -22,7 +26,7 @@ export function create_sequelize_connection(
     password,
     host,
     port,
-    logging: false,
+    logging,
     define: {
       paranoid: false,
       timestamps: true,

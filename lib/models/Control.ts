@@ -64,7 +64,7 @@ export class Control extends Model<Control> {
   source_location!: SourceLocation;
 
   @BelongsTo(() => Profile, "profile_id")
-  profile?: Profile | null = null;
+  profile?: Profile | null;
 
   @CreatedAt
   @Column

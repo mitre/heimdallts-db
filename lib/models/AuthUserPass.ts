@@ -45,7 +45,12 @@ export class AuthUserPass extends Model<AuthUserPass> {
   expiration?: Date | null;
 
   // @AllowNull(false)
-  @BelongsTo(() => User, "user_id")
+  @BelongsTo(() => User, {
+    foreignKey: {
+      name: "user_id",
+      allowNull: false
+    }
+  })
   user?: User;
 
   @HasMany(() => ResetToken, "auth_user_pass_id")

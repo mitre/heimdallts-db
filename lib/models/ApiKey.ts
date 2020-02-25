@@ -26,7 +26,7 @@ import { Role } from "./Role";
 export class ApiKey extends Model<ApiKey> {
   @AllowNull(true)
   @Column(DataType.DATE)
-  expiration?: Date | null = null;
+  expiration?: Date | null;
 
   @Column
   key!: string;
