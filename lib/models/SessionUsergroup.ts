@@ -1,17 +1,17 @@
 import { Model, Column, Table, ForeignKey } from "sequelize-typescript";
-import { Role } from "./Role";
 import { Session } from "./Session";
+import { Usergroup } from "./Usergroup";
 
 @Table({
   timestamps: false,
-  tableName: "usergroups_roles"
+  tableName: "sessions_usergroups"
 })
-export class SessionRole extends Model<SessionRole> {
+export class SessionUsergroup extends Model<SessionUsergroup> {
   @ForeignKey(() => Session)
   @Column
   sessionId!: number;
 
-  @ForeignKey(() => Role)
+  @ForeignKey(() => Usergroup)
   @Column
-  roleId!: number;
+  usergroupId!: number;
 }

@@ -7,7 +7,8 @@ import {
   DataType,
   AllowNull,
   HasMany,
-  BelongsToMany
+  BelongsToMany,
+  IsEmail
 } from "sequelize-typescript";
 import { AuthUserPass } from "./AuthUserPass";
 import { UserUsergroup } from "./UserUsergroup";
@@ -28,6 +29,7 @@ export class User extends Model<User> {
   lastName?: string | null;
 
   /** The contact email of the user */
+  @IsEmail
   @AllowNull(true)
   @Column(DataType.STRING)
   contactEmail?: string | null;

@@ -1,6 +1,5 @@
 import {
   Column,
-  DefaultScope,
   CreatedAt,
   Model,
   Table,
@@ -9,37 +8,29 @@ import {
   BelongsTo,
   BelongsToMany
 } from "sequelize-typescript";
-import { Op, fn } from "sequelize";
 import { User } from "./User";
-import { Role } from "./Role";
-import { SessionRole } from "./SessionRole";
+import { Usergroup } from "./Usergroup";
+import { SessionUsergroup } from "./SessionUsergroup";
 
-@DefaultScope(() => ({
-  where: {
-    expiration: {
-      [Op.gt]: fn("NOW") // Don't want expired data
-    }
-  }
-}))
 @Table({
   tableName: "sessions"
 })
 export class Session extends Model<Session> {
-  @Column(DataType.DATE)
-  expiration!: Date;
-
   @Column
   key!: string;
 
-  @BelongsTo(() => User, "user_id")
-  user?: User;
+  /** For logging purposes, the IP */
+  @Column
+  ip!: string;
 
-  /** The role the session */
+  /** Which usergroups are associated with this session?
+   * These determine which resources the user will have access to.
+   */
   @BelongsToMany(
-    () => Role,
-    () => SessionRole
+    () => Usergroup,
+    () => SessionUsergroup
   )
-  roles?: Role[];
+  usergroups?: Usergroup[];
 
   @CreatedAt
   @Column

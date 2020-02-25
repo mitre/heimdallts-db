@@ -7,11 +7,12 @@ import {
   UpdatedAt,
   DataType,
   AllowNull,
-  BelongsTo
+  BelongsTo,
+  BeforeCreate
 } from "sequelize-typescript";
 import { Op, fn } from "sequelize";
 import { User } from "./User";
-import { Role } from "./Role";
+import { Usergroup } from "./Usergroup";
 
 @DefaultScope(() => ({
   where: {
@@ -28,6 +29,7 @@ export class ApiKey extends Model<ApiKey> {
   @Column(DataType.DATE)
   expiration?: Date | null;
 
+  /** The actual JWT api key */
   @Column
   key!: string;
 
@@ -35,17 +37,27 @@ export class ApiKey extends Model<ApiKey> {
   @Column
   name!: string;
 
-  /** The role to which this api-key provides access. If null, provides full user access. */
-  @BelongsTo(() => Role, {
+  /** The usergroup to which this api-key provides access.
+   * This API key will have all auth grants given to this usergroup.
+   * If null, all usergroups owned by the user will be available
+   */
+  @BelongsTo(() => Usergroup, {
     foreignKey: {
       allowNull: true,
       name: "role_id"
     }
   })
-  role?: Role;
+  usergroup?: Usergroup;
 
-  /** The user which created this key */
-  @BelongsTo(() => User, "user_id")
+  /**
+   * The user to which this api-key corresponds. Also denotes the creator.
+   */
+  @BelongsTo(() => User, {
+    foreignKey: {
+      allowNull: false,
+      name: "user_id"
+    }
+  })
   user?: User;
 
   @CreatedAt

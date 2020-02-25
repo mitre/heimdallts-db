@@ -7,10 +7,10 @@ import {
   DataType,
   BelongsToMany
 } from "sequelize-typescript";
-import { Role } from "./Role";
 import { User } from "./User";
 import { UserUsergroup } from "./UserUsergroup";
-import { UsergroupRole } from "./UsergroupRole";
+
+export type UsergroupType = "personal" | "team";
 
 @Table({
   tableName: "usergroups"
@@ -20,15 +20,11 @@ export class Usergroup extends Model<Usergroup> {
   @Column(DataType.STRING)
   name!: string;
 
-  /** Denotes whether this is a group for a single user */
-  @Column(DataType.BOOLEAN)
-  personal!: boolean;
-
-  @BelongsToMany(
-    () => Role,
-    () => UsergroupRole
-  )
-  roles?: Role[];
+  /** Denotes whether this is a group for a single user.
+   * These "personal" groups simplify our role
+   */
+  @Column(DataType.STRING)
+  type!: UsergroupType;
 
   @BelongsToMany(
     () => User,
