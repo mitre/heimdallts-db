@@ -5,7 +5,8 @@ import {
   Table,
   UpdatedAt,
   DataType,
-  BelongsToMany
+  BelongsToMany,
+  ForeignKey
 } from "sequelize-typescript";
 import { User } from "./User";
 import { UserUsergroup } from "./UserUsergroup";
@@ -31,6 +32,10 @@ export class Usergroup extends Model<Usergroup> {
     () => UserUsergroup
   )
   users?: User[];
+
+  // Who owns it
+  @ForeignKey(() => User)
+  owning_user?: User;
 
   @CreatedAt
   @Column

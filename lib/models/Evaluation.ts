@@ -7,7 +7,8 @@ import {
   BelongsToMany,
   Scopes,
   CreatedAt,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { EvaluationProfile } from "./EvaluationProfile";
@@ -19,9 +20,11 @@ import { Finding } from "./Finding";
 import { WaiverDatum } from "./WaiverDatum";
 import { Result } from "./Result";
 import { Depend } from "./Depend";
+import { User } from "./User";
+import { Usergroup } from "./Usergroup";
 
 @Scopes(() => ({
-  short: { },
+  short: {},
   meta: {
     include: [Statistic, Platform, Finding, Tag]
   }
@@ -85,6 +88,13 @@ export class Evaluation extends Model<Evaluation> {
     () => EvaluationProfile
   )
   profiles?: Profile[];
+
+  // Our creators
+  @ForeignKey(() => User)
+  owning_user?: User;
+
+  @ForeignKey(() => Usergroup)
+  owning_usergroup?: Usergroup;
 
   @CreatedAt
   @Column
