@@ -13,6 +13,7 @@ import {
 import { AuthUserPass } from "./AuthUserPass";
 import { UserUsergroup } from "./UserUsergroup";
 import { Usergroup } from "./Usergroup";
+import { Evaluation } from "./Evaluation";
 
 @Table({
   tableName: "users"
@@ -21,38 +22,43 @@ export class User extends Model<User> {
   /** The first name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  firstName?: string | null;
+  first_name!: string | null;
 
   /** The last name of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  lastName?: string | null;
+  last_name!: string | null;
 
   /** The contact email of the user */
   @IsEmail
   @AllowNull(true)
   @Column(DataType.STRING)
-  contactEmail?: string | null;
+  contact_email!: string | null;
 
   /** The filepath to the profile image of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  image?: string | null;
+  image!: string | null;
 
   /** The phone number of the user */
   @AllowNull(true)
   @Column(DataType.STRING)
-  phoneNumber?: string | null;
+  phone_number!: string | null;
 
   /** The login(s) that we host locally to provide access to this account */
-  @HasMany(() => AuthUserPass, "user_id")
-  authUserPass?: AuthUserPass[];
+  @HasMany(() => AuthUserPass, { onDelete: "CASCADE" })
+  auth_user_pass?: AuthUserPass[];
 
+  /** The usergroups this user belongs to */
   @BelongsToMany(
     () => Usergroup,
     () => UserUsergroup
   )
   usergroups?: Usergroup[];
+
+  /** The evaluations which are directly owned by this user */
+  @HasMany(() => Evaluation)
+  evaluations?: Evaluation[];
 
   @CreatedAt
   @Column

@@ -5,7 +5,9 @@ import {
   Model,
   Table,
   UpdatedAt,
-  DataType
+  DataType,
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 
@@ -13,22 +15,26 @@ import { Profile } from "./Profile";
   tableName: "groups"
 })
 export class Group extends Model<Group> {
-  @Column
-  title!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  title!: string | null;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   control_id!: string;
 
+  @AllowNull(false)
   @Column(DataType.ARRAY(DataType.STRING))
   controls!: string[];
 
-  @BelongsTo(() => Profile, {
-    foreignKey: {
-      allowNull: false,
-      name: "profile_id"
-    }
-  })
+  /** The profile that contains this group */
+  @BelongsTo(() => Profile)
   profile?: Profile;
+
+  @ForeignKey(() => Profile)
+  @AllowNull(false)
+  @Column
+  profile_id!: number;
 
   @CreatedAt
   @Column

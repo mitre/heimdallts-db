@@ -6,7 +6,9 @@ import {
   Model,
   Scopes,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  DataType
 } from "sequelize-typescript";
 import { EvaluationProfile } from "./EvaluationProfile";
 import { Evaluation } from "./Evaluation";
@@ -28,52 +30,62 @@ import { DependantParent } from "./DependantParent";
   tableName: "profiles"
 })
 export class Profile extends Model<Profile> {
+  @AllowNull(false)
   @Column
   name!: string;
 
-  @Column
-  title?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  title!: string | null;
 
-  @Column
-  maintainer?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  maintainer!: string | null;
 
-  @Column
-  copyright?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  copyright!: string | null;
 
-  @Column
-  copyright_email?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  copyright_email!: string | null;
 
-  @Column
-  license?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  license!: string | null;
 
-  @Column
-  summary?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  summary!: string | null;
 
   //@Column
   //description?: string;
 
-  @Column
-  version?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  version!: string | null;
 
-  @Column
-  status?: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  status!: string | null;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   sha256!: string;
 
-  @HasMany(() => Input, "profile_id")
+  @HasMany(() => Input, { onDelete: "CASCADE" })
   inputs?: Input[];
 
-  @HasMany(() => Group, { foreignKey: "profile_id", onDelete: "CASCADE" })
+  @HasMany(() => Group, { onDelete: "CASCADE" })
   groups?: Group[];
 
-  @HasMany(() => Depend, "profile_id")
+  @HasMany(() => Depend, { onDelete: "CASCADE" })
   depends?: Depend[];
 
-  @HasMany(() => Support, "profile_id")
+  @HasMany(() => Support, { onDelete: "CASCADE" })
   supports?: Support[];
 
-  @HasMany(() => Control, "profile_id")
+  @HasMany(() => Control, { onDelete: "CASCADE" })
   controls?: Control[];
 
   @BelongsToMany(

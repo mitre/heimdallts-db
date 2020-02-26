@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { Statistic } from "../models/Statistic";
-import { convert_statistics } from "../output";
 
 export const statistics = Router();
 

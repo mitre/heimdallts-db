@@ -6,7 +6,8 @@ import {
   Table,
   DataType,
   UpdatedAt,
-  AllowNull
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Control } from "./Control";
 import { Evaluation } from "./Evaluation";
@@ -43,21 +44,21 @@ export class Result extends Model<Result> {
   @Column(DataType.ARRAY(DataType.STRING))
   backtrace!: string[] | null;
 
-  @BelongsTo(() => Control, {
-    foreignKey: {
-      name: "control_id",
-      allowNull: false
-    }
-  })
+  @BelongsTo(() => Control)
   control?: Control;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @ForeignKey(() => Control)
+  @AllowNull(false)
+  @Column
+  control_id!: number;
+
+  @BelongsTo(() => Evaluation)
   evaluation?: Evaluation;
+
+  @ForeignKey(() => Evaluation)
+  @AllowNull(false)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

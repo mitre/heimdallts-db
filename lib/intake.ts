@@ -8,7 +8,7 @@ import { Support } from "./models/Support";
 import { Control } from "./models/Control";
 import { Ref } from "./models/Ref";
 import { Description } from "./models/Description";
-import { Tag } from "./models/Tag";
+import { Tag, TagContent } from "./models/Tag";
 import { Result } from "./models/Result";
 import { Depend } from "./models/Depend";
 import { Input } from "./models/Input";
@@ -159,12 +159,19 @@ export async function intake_control_tags(
   tags: schemas_1_0.ExecJSON.Control["tags"],
   for_control: Control
 ): Promise<Tag[]> {
-  return Tag.bulkCreate(
-    Object.keys(tags).map(key => ({
+  const parsed_tags: TagContent[] = Object.keys(tags).map(key => {
+    const val = tags[key];
+    return {
       name: key,
-      value: tags[key],
-      tagger_type: "control",
-      tagger_id: for_control.id
+      value: val
+    };
+  });
+
+  return Tag.bulkCreate(
+    parsed_tags.map(content => ({
+      tagger_type: "Control",
+      tagger_id: for_control.id,
+      content
     }))
   );
 }

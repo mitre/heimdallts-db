@@ -4,7 +4,8 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey
 } from "sequelize-typescript";
 import { Control } from "./Control";
 
@@ -21,8 +22,11 @@ export class Ref extends Model<Ref> {
   @Column
   uri!: string;
 
-  @BelongsTo(() => Control, "control_id")
-  control?: Control | null;
+  @BelongsTo(() => Control)
+  control?: Control;
+
+  @ForeignKey(() => Control)
+  control_id!: number;
 
   @CreatedAt
   @Column

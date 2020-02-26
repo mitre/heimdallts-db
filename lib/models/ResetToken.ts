@@ -6,7 +6,9 @@ import {
   Table,
   UpdatedAt,
   DataType,
-  BelongsTo
+  BelongsTo,
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Op, fn } from "sequelize";
 import { AuthUserPass } from "./AuthUserPass";
@@ -22,12 +24,16 @@ import { AuthUserPass } from "./AuthUserPass";
   tableName: "reset_tokens"
 })
 export class ResetToken extends Model<ResetToken> {
+  @AllowNull(false) // Not strictly necessary but probably a good idea
   @Column(DataType.DATE)
-  expiration?: Date;
+  expiration!: Date;
 
+  /** The token that must be provided to "activate" this auth key */
+  @AllowNull(false)
   @Column
   token!: string;
 
+  /** The auth this will reset */
   @BelongsTo(() => AuthUserPass, {
     foreignKey: {
       name: "auth_user_pass_id",
@@ -35,6 +41,9 @@ export class ResetToken extends Model<ResetToken> {
     }
   })
   auth_user_pass?: AuthUserPass;
+
+  @ForeignKey(() => AuthUserPass)
+  auth_user_pass_id!: number;
 
   @CreatedAt
   @Column

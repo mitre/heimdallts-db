@@ -1,4 +1,10 @@
-import { Model, Column, Table, ForeignKey } from "sequelize-typescript";
+import {
+  Model,
+  Column,
+  Table,
+  ForeignKey,
+  AllowNull
+} from "sequelize-typescript";
 import { Profile } from "./Profile";
 
 @Table({
@@ -7,10 +13,12 @@ import { Profile } from "./Profile";
 })
 export class DependantParent extends Model<DependantParent> {
   @ForeignKey(() => Profile)
+  @AllowNull(false)
   @Column
   parentId!: number;
 
   @ForeignKey(() => Profile)
+  @AllowNull(false)
   @Column
   dependantId!: number;
 }

@@ -4,7 +4,10 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  DataType
 } from "sequelize-typescript";
 import { Control } from "./Control";
 import { Evaluation } from "./Evaluation";
@@ -13,33 +16,37 @@ import { Evaluation } from "./Evaluation";
   tableName: "waiver_data"
 })
 export class WaiverDatum extends Model<WaiverDatum> {
-  @Column
-  justification!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  justification!: string | null;
 
-  @Column
-  run!: boolean;
+  @AllowNull(true)
+  @Column(DataType.BOOLEAN)
+  run!: boolean | null;
 
-  @Column
-  skipped_due_to_waiver!: boolean;
+  @AllowNull(true)
+  @Column(DataType.BOOLEAN)
+  skipped_due_to_waiver!: boolean | null;
 
-  @Column
-  message!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  message!: string | null;
 
-  @BelongsTo(() => Control, {
-    foreignKey: {
-      name: "control_id",
-      allowNull: false
-    }
-  })
+  @BelongsTo(() => Control)
   control?: Control;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @AllowNull(false)
+  @ForeignKey(() => Control)
+  @Column
+  control_id!: number;
+
+  @BelongsTo(() => Evaluation)
   evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

@@ -4,7 +4,10 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  ForeignKey,
+  DataType
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 
@@ -12,34 +15,41 @@ import { Profile } from "./Profile";
   tableName: "supports"
 })
 export class Support extends Model<Support> {
-  @Column
-  os_name!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  os_name!: string | null;
 
-  @Column
-  os_family!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  os_family!: string | null;
 
-  @Column
-  platform!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  platform!: string | null;
 
-  @Column
-  platform_family!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  platform_family!: string | null;
 
-  @Column
-  platform_name!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  platform_name!: string | null;
 
-  @Column
-  release!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  release!: string | null;
 
-  @Column
-  inspec_version!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  inspec_version!: string | null;
 
-  @BelongsTo(() => Profile, {
-    foreignKey: {
-      name: "profile_id",
-      allowNull: false
-    }
-  })
+  @BelongsTo(() => Profile)
   profile?: Profile;
+
+  @AllowNull(false)
+  @ForeignKey(() => Profile)
+  @Column
+  profile_id!: number;
 
   @CreatedAt
   @Column

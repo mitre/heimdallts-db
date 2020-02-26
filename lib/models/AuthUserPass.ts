@@ -7,7 +7,8 @@ import {
   UpdatedAt,
   AllowNull,
   DataType,
-  HasMany
+  HasMany,
+  ForeignKey
 } from "sequelize-typescript";
 //import { Op, fn } from "sequelize";
 import { User } from "./User";
@@ -28,14 +29,17 @@ import { ResetToken } from "./ResetToken";
 })
 export class AuthUserPass extends Model<AuthUserPass> {
   /** The username */
+  @AllowNull(false)
   @Column
   username!: string;
 
   /** The password, salted and hashed */
+  @AllowNull(false)
   @Column
   encrypted_password!: string;
 
   /** Whether this user/pass has been disabled, either manually or via password reset. */
+  @AllowNull(false)
   @Column
   disabled!: boolean;
 
@@ -44,16 +48,17 @@ export class AuthUserPass extends Model<AuthUserPass> {
   @Column(DataType.DATE)
   expiration?: Date | null;
 
-  // @AllowNull(false)
-  @BelongsTo(() => User, {
-    foreignKey: {
-      name: "user_id",
-      allowNull: false
-    }
-  })
+  /** The user which owns this auth key */
+  @BelongsTo(() => User)
   user?: User;
 
-  @HasMany(() => ResetToken, "auth_user_pass_id")
+  @ForeignKey(() => User)
+  @AllowNull(false)
+  @Column
+  user_id!: number;
+
+  /** Reset tokens which can be used to disable this auth-user-pass */
+  @HasMany(() => ResetToken)
   reset_tokens?: ResetToken[];
 
   @CreatedAt

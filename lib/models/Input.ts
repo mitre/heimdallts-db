@@ -5,7 +5,9 @@ import {
   Model,
   Table,
   UpdatedAt,
-  DataType
+  DataType,
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 import { Profile } from "./Profile";
@@ -14,27 +16,29 @@ import { Profile } from "./Profile";
   tableName: "inputs"
 })
 export class Input extends Model<Input> {
+  @AllowNull(false)
   @Column
   name!: string;
 
+  @AllowNull(false)
   @Column(DataType.JSONB)
   options!: unknown;
 
-  @BelongsTo(() => Profile, {
-    foreignKey: {
-      allowNull: false,
-      name: "profile_id"
-    }
-  })
+  @BelongsTo(() => Profile)
   profile?: Profile;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      allowNull: false,
-      name: "evaluation_id"
-    }
-  })
+  @AllowNull(false)
+  @ForeignKey(() => Profile)
+  @Column
+  profile_id!: number;
+
+  @BelongsTo(() => Evaluation)
   evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

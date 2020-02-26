@@ -4,7 +4,10 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  ForeignKey,
+  DataType
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { Evaluation } from "./Evaluation";
@@ -14,39 +17,46 @@ import { Evaluation } from "./Evaluation";
 })
 @Table
 export class Depend extends Model<Depend> {
-  @Column
-  name!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  name!: string | null;
 
-  @Column
-  path!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  path!: string | null;
 
-  @Column
-  url!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  url!: string | null;
 
-  @Column
-  status!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  status!: string | null;
 
-  @Column
-  git!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  git!: string | null;
 
-  @Column
-  branch!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  branch!: string | null;
 
-  @BelongsTo(() => Profile, {
-    foreignKey: {
-      name: "profile_id",
-      allowNull: false
-    }
-  })
+  /** The profile which has/uses this dependency */
+  @BelongsTo(() => Profile, { foreignKey: { allowNull: false } })
   profile?: Profile;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
-  evaluation?: Profile;
+  @ForeignKey(() => Profile)
+  profile_id!: number;
+
+  /** The evaluation to which this specific dependency corresponds.
+   * This is necessary due to the per-run nature of "status".
+   * In theory, status should be broken out into DependStatus or somesuch, to preserve 3rd normal form
+   */
+  @BelongsTo(() => Evaluation, { foreignKey: { allowNull: false } })
+  evaluation?: Evaluation;
+
+  @ForeignKey(() => Evaluation)
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

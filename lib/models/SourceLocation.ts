@@ -4,7 +4,10 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  DataType
 } from "sequelize-typescript";
 import { Control } from "./Control";
 
@@ -12,14 +15,21 @@ import { Control } from "./Control";
   tableName: "source_locations"
 })
 export class SourceLocation extends Model<SourceLocation> {
-  @Column
-  ref!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  ref!: string | null;
 
-  @Column
+  @AllowNull(true)
+  @Column(DataType.STRING)
   line!: number;
 
-  @BelongsTo(() => Control, "control_id")
-  control?: Control | null;
+  @BelongsTo(() => Control)
+  control!: Control;
+
+  @AllowNull(false)
+  @ForeignKey(() => Control)
+  @Column
+  control_id!: number;
 
   @CreatedAt
   @Column

@@ -4,7 +4,9 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 
@@ -12,11 +14,17 @@ import { Evaluation } from "./Evaluation";
   tableName: "statistics"
 })
 export class Statistic extends Model<Statistic> {
+  @AllowNull(false)
   @Column
   duration!: string;
 
-  @BelongsTo(() => Evaluation, "evaluation_id")
-  evaluation?: Evaluation | null;
+  @BelongsTo(() => Evaluation)
+  evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

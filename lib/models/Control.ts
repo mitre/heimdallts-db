@@ -8,7 +8,11 @@ import {
   Model,
   Table,
   DataType,
-  UpdatedAt
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  Min,
+  Max
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { Tag } from "./Tag";
@@ -27,44 +31,63 @@ import { Result } from "./Result";
   tableName: "controls"
 })
 export class Control extends Model<Control> {
+  @AllowNull(true)
   @Column(DataType.TEXT)
-  title!: string;
+  title!: string | null;
 
+  @AllowNull(true)
   @Column(DataType.TEXT)
-  desc!: string;
+  desc!: string | null;
 
+  @AllowNull(false)
+  @Min(0.0)
+  @Max(1.0)
   @Column(DataType.FLOAT)
   impact!: number;
 
+  @AllowNull(true)
   @Column(DataType.TEXT)
   code!: string;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   control_id!: string;
 
+  /** The profile that contains this control */
+  @BelongsTo(() => Profile)
+  profile?: Profile;
+
+  @ForeignKey(() => Profile)
+  @AllowNull(false)
+  @Column
+  profile_id!: number;
+
+  /** The tags associated on this control, as defined in this polymorphic table */
   @HasMany(() => Tag, {
     foreignKey: "tagger_id",
     scope: { tagger_type: "Control" }
   })
-  tags!: Tag[];
+  tags?: Tag[];
 
-  @HasMany(() => Ref, "control_id")
-  refs!: Ref[];
+  /** The controls references (e.g. nist documents, etc)  */
+  @HasMany(() => Ref)
+  refs?: Ref[];
 
-  @HasMany(() => Description, "control_id")
-  descriptions!: Description[];
+  /** The describe label/value pairs */
+  @HasMany(() => Description)
+  descriptions?: Description[];
 
-  @HasMany(() => WaiverDatum, "control_id")
-  waiver_data!: WaiverDatum[];
+  /** The waiver data across all evaluations */
+  @HasMany(() => WaiverDatum)
+  waiver_data?: WaiverDatum[];
 
-  @HasMany(() => Result, "control_id")
-  results!: Result[];
+  /** The individual test results, across all evaluations */
+  @HasMany(() => Result)
+  results?: Result[];
 
-  @HasOne(() => SourceLocation, "control_id")
-  source_location!: SourceLocation;
-
-  @BelongsTo(() => Profile, "profile_id")
-  profile?: Profile | null;
+  /** Where in the test source code this control is found */
+  @HasOne(() => SourceLocation)
+  source_location?: SourceLocation;
 
   @CreatedAt
   @Column

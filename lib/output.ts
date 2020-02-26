@@ -14,7 +14,6 @@ import { Op } from "sequelize";
 import { Depend } from "./models/Depend";
 import { Input } from "./models/Input";
 import { WaiverDatum } from "./models/WaiverDatum";
-import { controls } from "./routes/controls";
 import { SourceLocation } from "./models/SourceLocation";
 
 /** A utility function which checks if the specified key is present in the object x,
@@ -105,7 +104,7 @@ export async function convert_exec_profile(
     supports: convert_supports(await db_profile.$get("supports")),
     copyright: db_profile.copyright,
     copyright_email: db_profile.copyright_email,
-    depends: db_profile.depends,
+    depends: (await db_profile.$get("depends")).map(convert_dependency),
     //description: db_profile.description, // db_profile.desc,
     inspec_version: null, // TODO: We should track this
     license: db_profile.license,

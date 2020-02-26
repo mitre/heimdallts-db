@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { app } from "./express";
 import { create_sequelize_connection } from "../sequelize";
 import "process";
-import { Sequelize } from "sequelize/types";
+import { Sequelize } from "sequelize";
 
 let sequelize!: Sequelize;
 if (

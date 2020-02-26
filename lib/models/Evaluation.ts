@@ -8,7 +8,10 @@ import {
   Scopes,
   CreatedAt,
   UpdatedAt,
-  ForeignKey
+  ForeignKey,
+  BelongsTo,
+  AllowNull,
+  DataType
 } from "sequelize-typescript";
 import { Profile } from "./Profile";
 import { EvaluationProfile } from "./EvaluationProfile";
@@ -36,51 +39,31 @@ export class Evaluation extends Model<Evaluation> {
   @Column
   version!: string;
 
-  @HasOne(() => Statistic, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @HasOne(() => Statistic, { onDelete: "CASCADE" })
   statistic?: Statistic;
 
-  @HasOne(() => Platform, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @HasOne(() => Platform, { onDelete: "CASCADE" })
   platform?: Platform;
 
-  @HasOne(() => Depend, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @HasOne(() => Depend, { onDelete: "CASCADE" })
   depend?: Depend;
 
-  @HasMany(() => Input, "evaluation_id")
+  @HasMany(() => Input, { onDelete: "CASCADE" })
   inputs?: Input[];
 
   @HasMany(() => Tag, {
     foreignKey: "tagger_id",
     scope: { tagger_type: "Evaluation" }
   })
-  tags!: Tag[];
+  tags?: Tag[];
 
-  @HasMany(() => WaiverDatum, "evaluation_id")
-  waiver_data!: WaiverDatum[];
+  @HasMany(() => WaiverDatum, { onDelete: "CASCADE" })
+  waiver_data?: WaiverDatum[];
 
-  @HasMany(() => Result, "evaluation_id")
-  results!: Result[];
+  @HasMany(() => Result, { onDelete: "CASCADE" })
+  results?: Result[];
 
-  @HasOne(() => Finding, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @HasOne(() => Finding, { onDelete: "CASCADE" })
   finding?: Finding;
 
   @BelongsToMany(
@@ -89,12 +72,22 @@ export class Evaluation extends Model<Evaluation> {
   )
   profiles?: Profile[];
 
-  // Our creators
-  @ForeignKey(() => User)
+  // Our owners
+  @BelongsTo(() => User)
   owning_user?: User;
 
-  @ForeignKey(() => Usergroup)
+  @AllowNull(true)
+  @ForeignKey(() => User)
+  @Column(DataType.INTEGER)
+  owning_user_id!: number | null;
+
+  @BelongsTo(() => Usergroup)
   owning_usergroup?: Usergroup;
+
+  @AllowNull(true)
+  @ForeignKey(() => Usergroup)
+  @Column(DataType.INTEGER)
+  owning_usergroup_id!: number | null;
 
   @CreatedAt
   @Column

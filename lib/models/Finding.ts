@@ -4,7 +4,9 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  ForeignKey
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 
@@ -12,28 +14,33 @@ import { Evaluation } from "./Evaluation";
   tableName: "findings"
 })
 export class Finding extends Model<Finding> {
+  @AllowNull(false)
   @Column
   passed!: number;
 
+  @AllowNull(false)
   @Column
   failed!: number;
 
+  @AllowNull(false)
   @Column
   not_reviewed!: number;
 
+  @AllowNull(false)
   @Column
   not_applicable!: number;
 
+  @AllowNull(false)
   @Column
   profile_error!: number;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      allowNull: false,
-      name: "evaluation_id"
-    }
-  })
+  @BelongsTo(() => Evaluation)
   evaluation?: Evaluation;
+
+  @ForeignKey(() => Evaluation)
+  @AllowNull(false)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column

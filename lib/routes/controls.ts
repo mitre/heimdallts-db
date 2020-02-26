@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { Control } from "../models/Control";
-import { convert_exec_control } from "../output";
 
 export const controls = Router();
 

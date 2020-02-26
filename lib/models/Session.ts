@@ -4,11 +4,9 @@ import {
   Model,
   Table,
   UpdatedAt,
-  DataType,
-  BelongsTo,
-  BelongsToMany
+  BelongsToMany,
+  AllowNull
 } from "sequelize-typescript";
-import { User } from "./User";
 import { Usergroup } from "./Usergroup";
 import { SessionUsergroup } from "./SessionUsergroup";
 
@@ -16,10 +14,12 @@ import { SessionUsergroup } from "./SessionUsergroup";
   tableName: "sessions"
 })
 export class Session extends Model<Session> {
+  @AllowNull(false)
   @Column
   key!: string;
 
   /** For logging purposes, the IP */
+  @AllowNull(false)
   @Column
   ip!: string;
 
@@ -30,7 +30,7 @@ export class Session extends Model<Session> {
     () => Usergroup,
     () => SessionUsergroup
   )
-  usergroups?: Usergroup[];
+  other_usergroups?: Usergroup[];
 
   @CreatedAt
   @Column

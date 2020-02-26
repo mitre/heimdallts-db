@@ -4,7 +4,10 @@ import {
   CreatedAt,
   Model,
   Table,
-  UpdatedAt
+  UpdatedAt,
+  AllowNull,
+  DataType,
+  ForeignKey
 } from "sequelize-typescript";
 import { Evaluation } from "./Evaluation";
 
@@ -12,19 +15,25 @@ import { Evaluation } from "./Evaluation";
   tableName: "platforms"
 })
 export class Platform extends Model<Platform> {
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   name!: string;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   release!: string;
 
-  @BelongsTo(() => Evaluation, {
-    foreignKey: {
-      name: "evaluation_id",
-      allowNull: false
-    }
-  })
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  target_id!: string | null;
+
+  @BelongsTo(() => Evaluation)
   evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
