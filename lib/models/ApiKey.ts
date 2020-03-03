@@ -14,13 +14,14 @@ import { Op, fn } from "sequelize";
 import { User } from "./User";
 import { Usergroup } from "./Usergroup";
 
+/*
 @DefaultScope(() => ({
   where: {
     expiration: {
       [Op.gt]: fn("NOW") // Don't want expired data
     }
   }
-}))
+})) */
 @Table({
   tableName: "api_keys"
 })

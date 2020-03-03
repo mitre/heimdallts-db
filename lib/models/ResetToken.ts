@@ -13,6 +13,7 @@ import {
 import { Op, fn } from "sequelize";
 import { AuthUserPass } from "./AuthUserPass";
 
+/*
 @DefaultScope(() => ({
   where: {
     expiration: {
@@ -20,6 +21,7 @@ import { AuthUserPass } from "./AuthUserPass";
     }
   }
 }))
+*/
 @Table({
   tableName: "reset_tokens"
 })
