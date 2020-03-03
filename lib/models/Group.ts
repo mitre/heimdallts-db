@@ -16,7 +16,7 @@ import { Profile } from "./Profile";
 })
 export class Group extends Model<Group> {
   @AllowNull(true)
-  @Column(DataType.STRING)
+  @Column(DataType.TEXT)
   title!: string | null;
 
   @AllowNull(false)

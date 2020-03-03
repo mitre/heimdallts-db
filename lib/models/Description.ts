@@ -6,7 +6,8 @@ import {
   Table,
   UpdatedAt,
   ForeignKey,
-  AllowNull
+  AllowNull,
+  DataType
 } from "sequelize-typescript";
 import { Control } from "./Control";
 
@@ -19,7 +20,7 @@ export class Description extends Model<Description> {
   label!: string;
 
   @AllowNull(false)
-  @Column
+  @Column(DataType.TEXT)
   data!: string;
 
   @BelongsTo(() => Control)

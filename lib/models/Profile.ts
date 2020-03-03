@@ -55,7 +55,7 @@ export class Profile extends Model<Profile> {
   license!: string | null;
 
   @AllowNull(true)
-  @Column(DataType.STRING)
+  @Column(DataType.TEXT)
   summary!: string | null;
 
   //@Column
