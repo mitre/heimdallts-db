@@ -58,7 +58,7 @@ export class ApiKey extends Model<ApiKey> {
   user?: User;
 
   @ForeignKey(() => User)
-  @AllowNull(true)
+  @AllowNull(false)
   @Column(DataType.INTEGER)
   user_id!: number;
 
