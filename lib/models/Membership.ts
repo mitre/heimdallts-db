@@ -9,7 +9,8 @@ import {
   UpdatedAt,
   HasOne,
   PrimaryKey,
-  Unique
+  Unique,
+  BelongsTo
 } from "sequelize-typescript";
 import { User } from "./User";
 import { Usergroup } from "./Usergroup";
@@ -43,11 +44,17 @@ export class Membership extends Model<Membership> {
   id!: number;
 
   // The binding between the the User and Usergroup that this establishes
+  @BelongsTo(() => User)
+  user?: User;
+
   @Unique("mn")
   @AllowNull(false)
   @ForeignKey(() => User)
   @Column
   user_id!: number;
+
+  @BelongsTo(() => Usergroup)
+  usergroup?: Usergroup;
 
   @Unique("mn")
   @AllowNull(false)
