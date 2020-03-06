@@ -8,7 +8,8 @@ import {
   AllowNull,
   HasMany,
   BelongsToMany,
-  IsEmail
+  IsEmail,
+  Unique
 } from "sequelize-typescript";
 import { AuthUserPass } from "./AuthUserPass";
 import { Membership } from "./Membership";
@@ -31,9 +32,10 @@ export class User extends Model<User> {
 
   /** The contact email of the user */
   @IsEmail
-  @AllowNull(true)
+  @Unique
+  @AllowNull(false)
   @Column(DataType.STRING)
-  contact_email!: string | null;
+  email!: string;
 
   /** The filepath to the profile image of the user */
   @AllowNull(true)
