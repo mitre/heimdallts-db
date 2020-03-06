@@ -5,21 +5,21 @@ import {
   ForeignKey,
   AllowNull
 } from "sequelize-typescript";
-import { User } from "./User";
+import { Evaluation } from "./Evaluation";
 import { Usergroup } from "./Usergroup";
 
 @Table({
   timestamps: false,
-  tableName: "users_usergroups"
+  tableName: "usergroups_evaluations"
 })
-export class UserUsergroup extends Model<UserUsergroup> {
+export class EvaluationUsergroup extends Model<EvaluationUsergroup> {
   @AllowNull(false)
-  @ForeignKey(() => User)
+  @ForeignKey(() => Evaluation)
   @Column
-  userId!: number;
+  evaluation_id!: number;
 
   @AllowNull(false)
   @ForeignKey(() => Usergroup)
   @Column
-  usergroupId!: number;
+  usergroup_id!: number;
 }

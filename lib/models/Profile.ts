@@ -8,7 +8,8 @@ import {
   Table,
   UpdatedAt,
   AllowNull,
-  DataType
+  DataType,
+  Unique
 } from "sequelize-typescript";
 import { EvaluationProfile } from "./EvaluationProfile";
 import { Evaluation } from "./Evaluation";
@@ -69,6 +70,7 @@ export class Profile extends Model<Profile> {
   @Column(DataType.STRING)
   status!: string | null;
 
+  @Unique
   @AllowNull(false)
   @Column(DataType.STRING)
   sha256!: string;

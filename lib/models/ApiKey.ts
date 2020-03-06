@@ -1,6 +1,5 @@
 import {
   Column,
-  DefaultScope,
   CreatedAt,
   Model,
   Table,
@@ -10,18 +9,8 @@ import {
   BelongsTo,
   ForeignKey
 } from "sequelize-typescript";
-import { Op, fn } from "sequelize";
-import { User } from "./User";
-import { Usergroup } from "./Usergroup";
+import { Membership } from "./Membership";
 
-/*
-@DefaultScope(() => ({
-  where: {
-    expiration: {
-      [Op.gt]: fn("NOW") // Don't want expired data
-    }
-  }
-})) */
 @Table({
   tableName: "api_keys"
 })
@@ -40,28 +29,16 @@ export class ApiKey extends Model<ApiKey> {
   @Column
   name!: string;
 
-  /** The usergroup to which this api-key provides access.
-   * This API key will have all auth grants given to this usergroup.
-   * If null, all usergroups owned by the user will be available
+  /** The usergroup membership to which this api-key provides access.
+   * It is bound via user-usergroup to ensure that it only has the priveleges bestowed of the user who created it
    */
-  @BelongsTo(() => Usergroup)
-  usergroup?: Usergroup | null;
+  @BelongsTo(() => Membership)
+  membership?: Membership;
 
-  @ForeignKey(() => Usergroup)
-  @AllowNull(true)
-  @Column(DataType.INTEGER)
-  usergroup_id!: number | null;
-
-  /**
-   * The user to which this api-key corresponds. Also denotes the creator.
-   */
-  @BelongsTo(() => User)
-  user?: User;
-
-  @ForeignKey(() => User)
   @AllowNull(false)
-  @Column(DataType.INTEGER)
-  user_id!: number;
+  @ForeignKey(() => Membership)
+  @Column
+  membership_id!: number;
 
   // Standard createdat/updatedat
   @CreatedAt

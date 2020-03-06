@@ -25,6 +25,7 @@ import { Result } from "./Result";
 import { Depend } from "./Depend";
 import { User } from "./User";
 import { Usergroup } from "./Usergroup";
+import { EvaluationUsergroup } from "./EvaluationUsergroup";
 
 @Scopes(() => ({
   short: {},
@@ -72,22 +73,11 @@ export class Evaluation extends Model<Evaluation> {
   )
   profiles?: Profile[];
 
-  // Our owners
-  @BelongsTo(() => User)
-  owning_user?: User;
-
-  @AllowNull(true)
-  @ForeignKey(() => User)
-  @Column(DataType.INTEGER)
-  owning_user_id!: number | null;
-
-  @BelongsTo(() => Usergroup)
-  owning_usergroup?: Usergroup;
-
-  @AllowNull(true)
-  @ForeignKey(() => Usergroup)
-  @Column(DataType.INTEGER)
-  owning_usergroup_id!: number | null;
+  @BelongsToMany(
+    () => Usergroup,
+    () => EvaluationUsergroup
+  )
+  owning_usergroups?: Usergroup[];
 
   @CreatedAt
   @Column

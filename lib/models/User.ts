@@ -11,7 +11,7 @@ import {
   IsEmail
 } from "sequelize-typescript";
 import { AuthUserPass } from "./AuthUserPass";
-import { UserUsergroup } from "./UserUsergroup";
+import { Membership } from "./Membership";
 import { Usergroup } from "./Usergroup";
 import { Evaluation } from "./Evaluation";
 
@@ -52,13 +52,13 @@ export class User extends Model<User> {
   /** The usergroups this user belongs to */
   @BelongsToMany(
     () => Usergroup,
-    () => UserUsergroup
+    () => Membership
   )
-  usergroups?: Usergroup[];
+  usergroups?: Array<Usergroup & { Membership: Membership }>;
 
   /** The evaluations which are directly owned by this user */
-  @HasMany(() => Evaluation)
-  evaluations?: Evaluation[];
+  // @HasMany(() => Evaluation)
+  // evaluations?: Evaluation[];
 
   @CreatedAt
   @Column

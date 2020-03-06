@@ -16,10 +16,10 @@ export class EvaluationProfile extends Model<EvaluationProfile> {
   @AllowNull(false)
   @ForeignKey(() => Evaluation)
   @Column
-  evaluationId!: number;
+  evaluation_id!: number;
 
   @AllowNull(false)
   @ForeignKey(() => Profile)
   @Column
-  profileId!: number;
+  profile_id!: number;
 }

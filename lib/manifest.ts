@@ -1,5 +1,4 @@
 /** Export models */
-export { ApiKey } from "./models/ApiKey";
 export { AuthUserPass } from "./models/AuthUserPass";
 export { Control } from "./models/Control";
 export { Depend } from "./models/Depend";
@@ -21,6 +20,8 @@ export { Statistic } from "./models/Statistic";
 export { Support } from "./models/Support";
 export { Tag } from "./models/Tag";
 export { User } from "./models/User";
-export { UserUsergroup } from "./models/UserUsergroup";
+export { EvaluationUsergroup } from "./models/EvaluationUsergroup";
+export { Membership, MembershipType } from "./models/Membership";
 export { Usergroup, UsergroupType } from "./models/Usergroup";
 export { WaiverDatum } from "./models/WaiverDatum";
+export { ApiKey } from "./models/ApiKey";

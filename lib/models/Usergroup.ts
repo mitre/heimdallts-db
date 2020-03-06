@@ -8,29 +8,44 @@ import {
   BelongsToMany
 } from "sequelize-typescript";
 import { User } from "./User";
-import { UserUsergroup } from "./UserUsergroup";
+import { EvaluationUsergroup } from "./EvaluationUsergroup";
+import { Evaluation } from "./Evaluation";
+import { Membership } from "./Membership";
 
-export type UsergroupType = "personal" | "team";
+export type UsergroupType = "personal" | "team" | "ad-hoc";
 
 @Table({
   tableName: "usergroups"
 })
 export class Usergroup extends Model<Usergroup> {
   /** Denotes the name of this usergroup */
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    unique: "group_title"
+  })
   name!: string;
 
   /** Denotes whether this is a group for a single user.
    * These "personal" groups simplify our role
    */
-  @Column(DataType.STRING)
+  @Column({
+    type: DataType.STRING,
+    unique: "group_title"
+  })
   type!: UsergroupType;
 
+  /** Denotes who's in this group */
   @BelongsToMany(
     () => User,
-    () => UserUsergroup
+    () => Membership
   )
-  users?: User[];
+  users?: Array<User & { Membership: Membership }>;
+
+  @BelongsToMany(
+    () => Evaluation,
+    () => EvaluationUsergroup
+  )
+  evaluations?: Evaluation[];
 
   @CreatedAt
   @Column

@@ -15,10 +15,10 @@ export class DependantParent extends Model<DependantParent> {
   @ForeignKey(() => Profile)
   @AllowNull(false)
   @Column
-  parentId!: number;
+  parent_id!: number;
 
   @ForeignKey(() => Profile)
   @AllowNull(false)
   @Column
-  dependantId!: number;
+  dependant_id!: number;
 }
