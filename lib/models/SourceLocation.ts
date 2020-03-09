@@ -1,20 +1,35 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  DataType
+} from "sequelize-typescript";
+import { Control } from "./Control";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'ref', 'line', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "source_locations"
+})
 export class SourceLocation extends Model<SourceLocation> {
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  ref!: string | null;
 
-  @Column
-  ref!: string;
-
-  @Column
+  @AllowNull(true)
+  @Column(DataType.STRING)
   line!: number;
 
-  @BelongsTo(() => Control, 'control_id')
-  control?: Control | null = null;
+  @BelongsTo(() => Control)
+  control!: Control;
+
+  @AllowNull(false)
+  @ForeignKey(() => Control)
+  @Column
+  control_id!: number;
 
   @CreatedAt
   @Column
@@ -23,5 +38,4 @@ export class SourceLocation extends Model<SourceLocation> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

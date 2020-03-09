@@ -1,12 +1,18 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  ForeignKey
+} from "sequelize-typescript";
+import { Control } from "./Control";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'ref', 'url', 'uri', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "refs"
+})
 export class Ref extends Model<Ref> {
-
   @Column
   ref!: string;
 
@@ -16,8 +22,11 @@ export class Ref extends Model<Ref> {
   @Column
   uri!: string;
 
-  @BelongsTo(() => Control, 'control_id')
-  control?: Control | null = null;
+  @BelongsTo(() => Control)
+  control?: Control;
+
+  @ForeignKey(() => Control)
+  control_id!: number;
 
   @CreatedAt
   @Column
@@ -26,5 +35,4 @@ export class Ref extends Model<Ref> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

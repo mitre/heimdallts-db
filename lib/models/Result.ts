@@ -1,18 +1,25 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, DataType, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  DataType,
+  UpdatedAt,
+  AllowNull,
+  ForeignKey
+} from "sequelize-typescript";
+import { Control } from "./Control";
+import { Evaluation } from "./Evaluation";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'evaluation_id', 'status', 'code_desc', 'skip_message', 'resource', 'run_time', 'start_time',
-  'message', 'exception', 'backtrace', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "results"
+})
 export class Result extends Model<Result> {
-
   @Column
   status!: string;
 
-  @Column
+  @Column(DataType.TEXT)
   code_desc!: string;
 
   @Column
@@ -27,20 +34,31 @@ export class Result extends Model<Result> {
   @Column
   start_time!: Date;
 
-  @Column
+  @Column(DataType.TEXT)
   message!: string;
 
   @Column
   exception!: string;
 
+  @AllowNull(true)
   @Column(DataType.ARRAY(DataType.STRING))
-  backtrace: string[] | null = null;
+  backtrace!: string[] | null;
 
-  @BelongsTo(() => Control, 'control_id')
-  control?: Control | null = null;
+  @BelongsTo(() => Control)
+  control?: Control;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
-  evaluation?: Evaluation | null = null;
+  @ForeignKey(() => Control)
+  @AllowNull(false)
+  @Column
+  control_id!: number;
+
+  @BelongsTo(() => Evaluation)
+  evaluation?: Evaluation;
+
+  @ForeignKey(() => Evaluation)
+  @AllowNull(false)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
@@ -49,5 +67,4 @@ export class Result extends Model<Result> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

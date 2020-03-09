@@ -1,20 +1,39 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  AllowNull,
+  DataType,
+  ForeignKey
+} from "sequelize-typescript";
+import { Evaluation } from "./Evaluation";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'name', 'release', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "platforms"
+})
 export class Platform extends Model<Platform> {
-
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   name!: string;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   release!: string;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
-  evaluation?: Evaluation | null = null;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  target_id!: string | null;
+
+  @BelongsTo(() => Evaluation)
+  evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
@@ -23,5 +42,4 @@ export class Platform extends Model<Platform> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

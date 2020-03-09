@@ -1,24 +1,44 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
-import {Evaluation} from './Evaluation';
-import {Profile} from './Profile';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType,
+  AllowNull,
+  ForeignKey
+} from "sequelize-typescript";
+import { Evaluation } from "./Evaluation";
+import { Profile } from "./Profile";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'evaluation_id', 'profile_id', 'name', 'options', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "inputs"
+})
 export class Input extends Model<Input> {
-
+  @AllowNull(false)
   @Column
   name!: string;
 
+  @AllowNull(false)
   @Column(DataType.JSONB)
   options!: unknown;
 
-  @BelongsTo(() => Profile, 'profile_id')
-  profile?: Profile | null = null;
+  @BelongsTo(() => Profile)
+  profile?: Profile;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
-  evaluation?: Evaluation | null = null;
+  @AllowNull(false)
+  @ForeignKey(() => Profile)
+  @Column
+  profile_id!: number;
+
+  @BelongsTo(() => Evaluation)
+  evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
@@ -27,5 +47,4 @@ export class Input extends Model<Input> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

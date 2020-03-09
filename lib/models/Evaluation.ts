@@ -1,91 +1,83 @@
-import {Model, Column, Table, HasOne, HasMany, BelongsToMany, DefaultScope, Scopes, CreatedAt, UpdatedAt} from "sequelize-typescript";
-import {Profile} from "./Profile";
-import {EvaluationProfile} from "./EvaluationProfile";
-import {Statistic} from "./Statistic";
-import {Platform} from "./Platform";
-import {Input} from "./Input";
-import {Tag} from "./Tag";
-import {Finding} from "./Finding";
-import {WaiverDatum} from './WaiverDatum';
-import {Result} from "./Result";
+import {
+  Model,
+  Column,
+  Table,
+  HasOne,
+  HasMany,
+  BelongsToMany,
+  Scopes,
+  CreatedAt,
+  UpdatedAt,
+  ForeignKey,
+  BelongsTo,
+  AllowNull,
+  DataType
+} from "sequelize-typescript";
+import { Profile } from "./Profile";
+import { EvaluationProfile } from "./EvaluationProfile";
+import { Statistic } from "./Statistic";
+import { Platform } from "./Platform";
+import { Input } from "./Input";
+import { Tag } from "./Tag";
+import { Finding } from "./Finding";
+import { WaiverDatum } from "./WaiverDatum";
+import { Result } from "./Result";
+import { Depend } from "./Depend";
+import { User } from "./User";
+import { Usergroup } from "./Usergroup";
+import { EvaluationUsergroup } from "./EvaluationUsergroup";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'version', 'createdAt', 'updatedAt']
-}))
 @Scopes(() => ({
-  profiles: {
-    include: [
-      {
-        model: Profile,
-        through: {attributes: []},
-      },
-    ],
-  },
-  statistic: {
-    include: [
-      {
-        model: Statistic,
-        as: 'statistic',
-        required: false,
-      },
-    ],
-  },
-  full: {
-    include: [{
-      model: Profile,
-      through: {attributes: []},
-    },
-    {
-      model: Statistic,
-      as: 'statistic',
-      required: false,
-    },
-    {
-      model: Platform,
-      as: 'platform',
-      required: false,
-    },
-    {
-      model: Finding,
-      as: 'finding',
-      required: false,
-    },
-    {
-      model: Tag,
-      as: 'tags',
-      required: false,
-    }]
+  short: {},
+  meta: {
+    include: [Statistic, Platform, Finding, Tag]
   }
 }))
-@Table
+@Table({
+  tableName: "evaluations"
+})
 export class Evaluation extends Model<Evaluation> {
-
   @Column
   version!: string;
 
-  @HasOne(() => Statistic, 'evaluation_id')
-  statistic?: Statistic | null = null;
+  @HasOne(() => Statistic, { onDelete: "CASCADE" })
+  statistic?: Statistic;
 
-  @HasOne(() => Platform, 'evaluation_id')
-  platform?: Platform | null = null;
+  @HasOne(() => Platform, { onDelete: "CASCADE" })
+  platform?: Platform;
 
-  @HasMany(() => Input, 'evaluation_id')
+  @HasOne(() => Depend, { onDelete: "CASCADE" })
+  depend?: Depend;
+
+  @HasMany(() => Input, { onDelete: "CASCADE" })
   inputs?: Input[];
 
-  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
-  tags!: Tag[];
+  @HasMany(() => Tag, {
+    foreignKey: "tagger_id",
+    scope: { tagger_type: "Evaluation" }
+  })
+  tags?: Tag[];
 
-  @HasMany(() => WaiverDatum, 'evaluation_id')
-  waiver_data!: WaiverDatum[];
+  @HasMany(() => WaiverDatum, { onDelete: "CASCADE" })
+  waiver_data?: WaiverDatum[];
 
-  @HasMany(() => Result, 'evaluation_id')
-  results!: Result[];
+  @HasMany(() => Result, { onDelete: "CASCADE" })
+  results?: Result[];
 
-  @HasOne(() => Finding, 'evaluation_id')
-  finding?: Finding | null = null;
+  @HasOne(() => Finding, { onDelete: "CASCADE" })
+  finding?: Finding;
 
-  @BelongsToMany(() => Profile, () => EvaluationProfile)
+  @BelongsToMany(
+    () => Profile,
+    () => EvaluationProfile
+  )
   profiles?: Profile[];
+
+  @BelongsToMany(
+    () => Usergroup,
+    () => EvaluationUsergroup
+  )
+  owning_usergroups?: Usergroup[];
 
   @CreatedAt
   @Column
@@ -94,5 +86,4 @@ export class Evaluation extends Model<Evaluation> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

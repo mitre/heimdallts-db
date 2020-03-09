@@ -1,82 +1,93 @@
-import {BelongsTo, Column, HasMany, HasOne, DefaultScope, Scopes, CreatedAt, Model, Table, DataType, UpdatedAt} from 'sequelize-typescript';
-import {Profile} from './Profile';
-import {Tag} from './Tag';
-import {Ref} from './Ref';
-import {Description} from './Description';
-import {SourceLocation} from './SourceLocation';
-import {WaiverDatum} from './WaiverDatum';
-import {Result} from './Result';
+import {
+  BelongsTo,
+  Column,
+  HasMany,
+  HasOne,
+  Scopes,
+  CreatedAt,
+  Model,
+  Table,
+  DataType,
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  Min,
+  Max
+} from "sequelize-typescript";
+import { Profile } from "./Profile";
+import { Tag } from "./Tag";
+import { Ref } from "./Ref";
+import { Description } from "./Description";
+import { SourceLocation } from "./SourceLocation";
+import { WaiverDatum } from "./WaiverDatum";
+import { Result } from "./Result";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'title', 'desc', 'impact', 'code', 'control_id', 'createdAt', 'updatedAt']
-}))
 @Scopes(() => ({
-  full: {
-    include: [{
-      model: WaiverDatum,
-      as: 'waiver_data',
-      required: false,
-    },
-    {
-      model: Ref,
-      as: 'refs',
-      required: false,
-    },
-    {
-      model: Description,
-      as: 'descriptions',
-      required: false,
-    },
-    {
-      model: SourceLocation,
-      as: 'source_location',
-      required: false,
-    },
-    {
-      model: Result,
-      as: 'results',
-      required: false,
-    },]
+  meta: {
+    include: [Ref, Description, SourceLocation, Result, Tag]
   }
 }))
-@Table
+@Table({
+  tableName: "controls"
+})
 export class Control extends Model<Control> {
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  title!: string | null;
 
-  @Column
-  title!: string;
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  desc!: string | null;
 
-  @Column
-  desc!: string;
-
-  @Column
+  @AllowNull(false)
+  @Min(0.0)
+  @Max(1.0)
+  @Column(DataType.FLOAT)
   impact!: number;
 
+  @AllowNull(true)
   @Column(DataType.TEXT)
   code!: string;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   control_id!: string;
 
-  @HasMany(() => Tag, {foreignKey: "tagger_id", scope: {tagger_type: "Evaluation"} })
-  tags!: Tag[];
+  /** The profile that contains this control */
+  @BelongsTo(() => Profile)
+  profile?: Profile;
 
-  @HasMany(() => Ref, 'control_id')
-  refs!: Ref[];
+  @ForeignKey(() => Profile)
+  @AllowNull(false)
+  @Column
+  profile_id!: number;
 
-  @HasMany(() => Description, 'control_id')
-  descriptions!: Description[];
+  /** The tags associated on this control, as defined in this polymorphic table */
+  @HasMany(() => Tag, {
+    foreignKey: "tagger_id",
+    scope: { tagger_type: "Control" }
+  })
+  tags?: Tag[];
 
-  @HasMany(() => WaiverDatum, 'control_id')
-  waiver_data!: WaiverDatum[];
+  /** The controls references (e.g. nist documents, etc)  */
+  @HasMany(() => Ref)
+  refs?: Ref[];
 
-  @HasMany(() => Result, 'control_id')
-  results!: Result[];
+  /** The describe label/value pairs */
+  @HasMany(() => Description)
+  descriptions?: Description[];
 
-  @HasOne(() => SourceLocation, 'control_id')
-  source_location!: SourceLocation;
+  /** The waiver data across all evaluations */
+  @HasMany(() => WaiverDatum)
+  waiver_data?: WaiverDatum[];
 
-  @BelongsTo(() => Profile, 'profile_id')
-  profile?: Profile | null = null;
+  /** The individual test results, across all evaluations */
+  @HasMany(() => Result)
+  results?: Result[];
+
+  /** Where in the test source code this control is found */
+  @HasOne(() => SourceLocation)
+  source_location?: SourceLocation;
 
   @CreatedAt
   @Column
@@ -85,5 +96,4 @@ export class Control extends Model<Control> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

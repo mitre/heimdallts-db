@@ -1,23 +1,40 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
-import {Profile} from './Profile';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType,
+  AllowNull,
+  ForeignKey
+} from "sequelize-typescript";
+import { Profile } from "./Profile";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'profile_id', 'title', 'control_id', 'controls', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "groups"
+})
 export class Group extends Model<Group> {
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  title!: string | null;
 
-  @Column
-  title!: string;
-
-  @Column
+  @AllowNull(false)
+  @Column(DataType.STRING)
   control_id!: string;
 
+  @AllowNull(false)
   @Column(DataType.ARRAY(DataType.STRING))
   controls!: string[];
 
-  @BelongsTo(() => Profile, 'profile_id')
-  profile?: Profile | null = null;
+  /** The profile that contains this group */
+  @BelongsTo(() => Profile)
+  profile?: Profile;
+
+  @ForeignKey(() => Profile)
+  @AllowNull(false)
+  @Column
+  profile_id!: number;
 
   @CreatedAt
   @Column
@@ -26,5 +43,4 @@ export class Group extends Model<Group> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

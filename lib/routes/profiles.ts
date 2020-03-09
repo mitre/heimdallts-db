@@ -1,24 +1,27 @@
-import {Router} from 'express';
-import {Profile} from '../models/Profile';
+import { Router } from "express";
+import { Profile } from "../models/Profile";
 
 export const profiles = Router();
 
-profiles.get('', async (req, res, next) => {
+profiles.get("", async (req, res, next) => {
   try {
-    res.json(await Profile.scope(req.query['scope']).findAll());
+    res.json(await Profile.scope(req.query["scope"]).findAll());
   } catch (e) {
-    console.log("error " + e);
+    console.error("error " + e);
     next(e);
   }
 });
 
-profiles.get('/:id', async (req, res, next) => {
+/*
+profiles.get("/:id", async (req, res, next) => {
   try {
-    const profile = await Profile.scope(req.query['scope']).findByPk(req.params['id']);
-    console.log(profile);
-    res.json(profiles);
+    const profile = await Profile.scope(req.query["scope"]).findByPk(
+      req.params["id"]
+    );
+    res.json(profile);
   } catch (e) {
-    console.log("error " + e);
+    console.error("error " + e);
     next(e);
   }
 });
+*/

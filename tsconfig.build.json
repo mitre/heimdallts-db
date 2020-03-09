@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig",
+  "exclude": [
+    "lib/runtime/*",
+    "lib/routes/*",
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "skipLibCheck": true
+  }
+}

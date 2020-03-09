@@ -1,20 +1,35 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Control} from './Control';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  ForeignKey,
+  AllowNull,
+  DataType
+} from "sequelize-typescript";
+import { Control } from "./Control";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'label', 'data', 'createdAt', 'updatedAt']
-}))
-@Table
+@Table({
+  tableName: "descriptions"
+})
 export class Description extends Model<Description> {
-
+  @AllowNull(false)
   @Column
   label!: string;
 
-  @Column
+  @AllowNull(false)
+  @Column(DataType.TEXT)
   data!: string;
 
-  @BelongsTo(() => Control, 'control_id')
-  control?: Control | null = null;
+  @BelongsTo(() => Control)
+  control?: Control;
+
+  @ForeignKey(() => Control)
+  @AllowNull(false)
+  @Column
+  control_id!: number;
 
   @CreatedAt
   @Column
@@ -23,5 +38,4 @@ export class Description extends Model<Description> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

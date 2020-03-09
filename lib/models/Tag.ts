@@ -1,19 +1,36 @@
-import {Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt, DataType} from 'sequelize-typescript';
+import {
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  DataType,
+  AllowNull
+} from "sequelize-typescript";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'tagger_id', 'tagger_type', 'content', 'createdAt', 'updatedAt']
-}))
-@Table
+export interface TagContent {
+  name: string;
+  value: Required<unknown>;
+}
+
+@Table({
+  tableName: "tags"
+})
 export class Tag extends Model<Tag> {
-
+  @AllowNull(false)
   @Column
   tagger_id!: number;
 
+  @AllowNull(false)
   @Column
   tagger_type!: string;
 
+  /** Note:
+   * Will always be a JSON of format TagContent
+   */
+  @AllowNull(false)
   @Column(DataType.JSONB)
-  content: unknown;
+  content!: TagContent;
 
   @CreatedAt
   @Column
@@ -22,5 +39,4 @@ export class Tag extends Model<Tag> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

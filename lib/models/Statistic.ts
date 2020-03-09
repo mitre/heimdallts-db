@@ -1,22 +1,30 @@
-import {BelongsTo, Column, DefaultScope, CreatedAt, Model, Table, UpdatedAt} from 'sequelize-typescript';
-import {Evaluation} from './Evaluation';
+import {
+  BelongsTo,
+  Column,
+  CreatedAt,
+  Model,
+  Table,
+  UpdatedAt,
+  AllowNull,
+  ForeignKey
+} from "sequelize-typescript";
+import { Evaluation } from "./Evaluation";
 
-@DefaultScope(() => ({
-  attributes: ['id', 'duration', 'createdAt', 'updatedAt']
-}))
 @Table({
-  timestamps: true,
-  underscored: true,
-  paranoid: false,
-  tableName: 'statistics',
+  tableName: "statistics"
 })
 export class Statistic extends Model<Statistic> {
-
+  @AllowNull(false)
   @Column
   duration!: string;
 
-  @BelongsTo(() => Evaluation, 'evaluation_id')
-  evaluation?: Evaluation | null = null;
+  @BelongsTo(() => Evaluation)
+  evaluation?: Evaluation;
+
+  @AllowNull(false)
+  @ForeignKey(() => Evaluation)
+  @Column
+  evaluation_id!: number;
 
   @CreatedAt
   @Column
@@ -25,5 +33,4 @@ export class Statistic extends Model<Statistic> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }

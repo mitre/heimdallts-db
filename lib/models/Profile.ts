@@ -1,105 +1,108 @@
-import {BelongsToMany, HasMany, Column, CreatedAt, Model, Scopes, Table, UpdatedAt} from 'sequelize-typescript';
-import {EvaluationProfile} from './EvaluationProfile';
-import {Evaluation} from './Evaluation';
-import {Input} from './Input';
-import {Group} from './Group';
-import {Depend} from './Depend';
-import {Support} from './Support';
-import {Control} from './Control';
+import {
+  BelongsToMany,
+  HasMany,
+  Column,
+  CreatedAt,
+  Model,
+  Scopes,
+  Table,
+  UpdatedAt,
+  AllowNull,
+  DataType,
+  Unique
+} from "sequelize-typescript";
+import { EvaluationProfile } from "./EvaluationProfile";
+import { Evaluation } from "./Evaluation";
+import { Input } from "./Input";
+import { Group } from "./Group";
+import { Depend } from "./Depend";
+import { Support } from "./Support";
+import { Control } from "./Control";
+import { DependantParent } from "./DependantParent";
 
 @Scopes(() => ({
-  evaluations: {
-    include: [
-      {
-        model: Evaluation,
-        through: {attributes: []},
-      },
-    ],
-  },
-  controls: {
-    include: [
-      {
-        model: Control,
-        as: 'controls',
-        required: false,
-      },
-    ],
-  },
-  full: {
-    include: [
-      {
-        model: Input,
-        as: 'inputs',
-        required: false,
-      },
-      {
-        model: Group,
-        as: 'groups',
-        required: false,
-      },
-      {
-        model: Depend,
-        as: 'depends',
-        required: false,
-      },
-      {
-        model: Support,
-        as: 'supports',
-        required: false,
-      }
-    ],
+  evaluations: { include: [Evaluation] },
+  controls: { include: [Control] },
+  meta: {
+    include: [Group, Depend, Support]
   }
 }))
-@Table
+@Table({
+  tableName: "profiles"
+})
 export class Profile extends Model<Profile> {
-
+  @AllowNull(false)
   @Column
   name!: string;
 
-  @Column
-  title!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  title!: string | null;
 
-  @Column
-  maintainer!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  maintainer!: string | null;
 
-  @Column
-  copyright!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  copyright!: string | null;
 
-  @Column
-  copyright_email!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  copyright_email!: string | null;
 
-  @Column
-  license!: string;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  license!: string | null;
 
-  @Column
-  summary!: string;
+  @AllowNull(true)
+  @Column(DataType.TEXT)
+  summary!: string | null;
 
-  @Column
-  version!: string;
+  //@Column
+  //description?: string;
 
-  @Column
-  status!: string;;
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  version!: string | null;
 
-  @Column
+  @AllowNull(true)
+  @Column(DataType.STRING)
+  status!: string | null;
+
+  @Unique
+  @AllowNull(false)
+  @Column(DataType.STRING)
   sha256!: string;
 
-  @HasMany(() => Input, 'profile_id')
+  @HasMany(() => Input, { onDelete: "CASCADE" })
   inputs?: Input[];
 
-  @HasMany(() => Group, {foreignKey: "profile_id", onDelete: "CASCADE"})
+  @HasMany(() => Group, { onDelete: "CASCADE" })
   groups?: Group[];
 
-  @HasMany(() => Depend, 'profile_id')
+  @HasMany(() => Depend, { onDelete: "CASCADE" })
   depends?: Depend[];
 
-  @HasMany(() => Support, 'profile_id')
+  @HasMany(() => Support, { onDelete: "CASCADE" })
   supports?: Support[];
 
-  @HasMany(() => Control, 'profile_id')
+  @HasMany(() => Control, { onDelete: "CASCADE" })
   controls?: Control[];
 
-  @BelongsToMany(() => Evaluation, () => EvaluationProfile)
+  @BelongsToMany(
+    () => Evaluation,
+    () => EvaluationProfile
+  )
   evaluations?: Evaluation[];
+
+  @BelongsToMany(
+    () => Profile,
+    () => DependantParent,
+    "dependant_id",
+    "parent_id"
+  )
+  parents?: Profile[];
 
   @CreatedAt
   @Column
@@ -108,5 +111,4 @@ export class Profile extends Model<Profile> {
   @UpdatedAt
   @Column
   updatedAt!: Date;
-
 }
