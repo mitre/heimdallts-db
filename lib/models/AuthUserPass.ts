@@ -8,7 +8,8 @@ import {
   AllowNull,
   DataType,
   HasMany,
-  ForeignKey
+  ForeignKey,
+  Unique
 } from "sequelize-typescript";
 //import { Op, fn } from "sequelize";
 import { User } from "./User";
@@ -29,6 +30,7 @@ import { ResetToken } from "./ResetToken";
 })
 export class AuthUserPass extends Model<AuthUserPass> {
   /** The username */
+  @Unique(true)
   @AllowNull(false)
   @Column
   username!: string;
