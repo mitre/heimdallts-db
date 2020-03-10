@@ -1,5 +1,5 @@
 {
-  "name": "hdf-db-sequelize",
+  "name": "heimdallts-db",
   "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
