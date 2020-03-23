@@ -10,7 +10,8 @@ import {
   HasOne,
   PrimaryKey,
   Unique,
-  BelongsTo
+  BelongsTo,
+  AutoIncrement
 } from "sequelize-typescript";
 import { User } from "./User";
 import { Usergroup } from "./Usergroup";
@@ -39,6 +40,7 @@ export type MembershipType = "owner" | "admin" | "user" | "guest";
   tableName: "memberships"
 })
 export class Membership extends Model<Membership> {
+  @AutoIncrement
   @PrimaryKey
   @Column
   id!: number;
