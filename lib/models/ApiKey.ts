@@ -25,9 +25,9 @@ export class ApiKey extends Model<ApiKey> {
   key!: string;
 
   /** The user-facing label for this key */
-  @AllowNull(false)
-  @Column
-  name!: string;
+  // @AllowNull(false)
+  // @Column
+  // name!: string;
 
   /** The usergroup membership to which this api-key provides access.
    * It is bound via user-usergroup to ensure that it only has the priveleges bestowed of the user who created it
