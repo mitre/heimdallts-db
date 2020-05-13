@@ -28,6 +28,13 @@ function mandate<T, K extends keyof T>(x: T, key: K): x is Required<T> {
   }
 }
 
+function fix_null<T>(v: T | null): T | undefined {
+  if(v === null) {
+      return undefined;
+  }
+  return v;
+}
+
 export async function convert_evaluation(
   db_eval: Evaluation
 ): Promise<schemas_1_0.ExecJSON.Execution> {
@@ -61,8 +68,8 @@ export function convert_platform(
   // mandate(db_platform, "target_id")
   return {
     name: db_platform.name,
-    release: db_platform.release,
-    target_id: "NOT_DB_SUPPORTED" // TODO: Figure this one out
+    release: db_platform.release
+    //target_id: "NOT_DB_SUPPORTED" // TODO: Figure this one out
   };
 }
 
@@ -106,12 +113,12 @@ export async function convert_exec_profile(
     copyright_email: db_profile.copyright_email,
     depends: (await db_profile.$get("depends")).map(convert_dependency),
     //description: db_profile.description, // db_profile.desc,
-    inspec_version: null, // TODO: We should track this
+    //inspec_version: null, // TODO: We should track this
     license: db_profile.license,
     maintainer: db_profile.maintainer,
-    parent_profile: null, // TODO: We should track this, and probably also track overlays in a separate record table
-    skip_message: null, // TODO: Should eventually be moved to a separate record, on candidate key (Evaluation, Overlay)
-    status: db_profile.status, // TODO: Ditto above, esp. because this can change on a per-execution basis
+    //parent_profile: null, // TODO: We should track this, and probably also track overlays in a separate record table
+    //skip_message: null, // TODO: Should eventually be moved to a separate record, on candidate key (Evaluation, Overlay)
+    //status: db_profile.status, // TODO: Ditto above, esp. because this can change on a per-execution basis
     summary: db_profile.summary,
     title: db_profile.title,
     version: db_profile.version,
@@ -138,13 +145,13 @@ export function convert_supports(
     return {
       // TODO: Fix this entirely. It's unclear how the current DB representation correlates to the actual JSON data.
       // Rob will probably know but he was offline when I encountered this.
-      os_family: s.os_family,
-      os_name: s.os_name,
-      platform: s.platform,
-      platform_family: s.platform_family,
-      platform_name: s.platform_name,
-      release: s.release,
-      inspec_version: s.inspec_version
+      os_family: fix_null(s.os_family),
+      os_name: fix_null(s.os_name),
+      platform: fix_null(s.platform),
+      platform_family: fix_null(s.platform_family),
+      platform_name: fix_null(s.platform_name),
+      release: fix_null(s.release),
+      inspec_version: fix_null(s.inspec_version)
     };
   });
 }
@@ -243,13 +250,13 @@ export function convert_results(
     const start_date = new Date(r.start_time);
     return {
       // evaluation: r.evaluation_id,
-      backtrace: r.backtrace,
+      backtrace: fix_null(r.backtrace),
       code_desc: r.code_desc,
-      exception: r.exception,
-      message: r.message,
-      resource: r.resource,
-      run_time: r.run_time,
-      skip_message: r.skip_message,
+      exception: fix_null(r.exception),
+      message: fix_null(r.message),
+      resource: fix_null(r.resource),
+      run_time: fix_null(r.run_time),
+      skip_message: fix_null(r.skip_message),
       start_time: start_date.toDateString(),
       status: r.status as schemas_1_0.ExecJSON.ControlResultStatus
     };
@@ -260,12 +267,12 @@ export function convert_dependency(
   dep: Depend
 ): schemas_1_0.ExecJSON.ProfileDependency {
   return new Depend({
-    name: dep.name,
-    path: dep.path,
-    url: dep.url,
-    status: dep.status,
-    git: dep.git,
-    branch: dep.branch
+    name: fix_null(dep.name),
+    path: fix_null(dep.path),
+    url: fix_null(dep.url),
+    status: fix_null(dep.status),
+    git: fix_null(dep.git),
+    branch: fix_null(dep.branch)
     // compliance: dep.compliance, // TODO: Add compliance
     // supermarket: dep.supermarket, // TODO: Add supermarket
   });
@@ -275,15 +282,19 @@ export function convert_inputs(
   i: Input[]
 ): schemas_1_0.ExecJSON.Profile["attributes"] {
   console.warn("Inputs not yet properly supported");
-  return i;
+  //return i;
+  return [];
 }
 
 export function convert_source_location(
   sl: SourceLocation
 ): schemas_1_0.ExecJSON.SourceLocation {
-  const line = sl.line;
-  const ref = sl.ref;
-  return { line, ref };
+  let ret_obj: string = '{ "line": ' + sl.line + ', "ref": "' + sl.ref + '" }';
+  //return { 
+  //  line: Number.isNaN(sl.line) ? null : sl.line,
+  //  ref: sl.ref 
+  //};
+  return JSON.parse(ret_obj);
 }
 
 export function convert_waiver(
